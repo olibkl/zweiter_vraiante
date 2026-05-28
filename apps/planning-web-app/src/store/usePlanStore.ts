@@ -202,6 +202,20 @@ const resolvePlanningType = (kpis: string[]): PlanningType => {
   return "Umsatz";
 };
 
+const ensurePlanRuntime = (plan: PlanningObject): PlanningObject => {
+  if (plan.document.runtime) {
+    return plan;
+  }
+
+  return {
+    ...plan,
+    document: {
+      ...plan.document,
+      runtime: buildPlanningDocumentRuntime(plan, plan.document.runtime),
+    },
+  };
+};
+
 const convertTreeByFactor = (nodes: PlanningNode[], factor: number): PlanningNode[] =>
   nodes.map((node) => ({
     ...node,
@@ -383,24 +397,36 @@ export const usePlanStore = create<PlanStoreState>()(
           return;
         }
 
+        const runtimeReadyPlan = ensurePlanRuntime(activePlan);
+        if (!activePlan.document.runtime && runtimeReadyPlan.document.runtime) {
+          set((state) => ({
+            allPlans: state.allPlans.map((plan) =>
+              plan.document.planId === planId ? runtimeReadyPlan : plan,
+            ),
+          }));
+          syncPlanToApi(get, planId);
+        }
+
         set({
-          ...createActivePlanState(activePlan),
+          ...createActivePlanState(runtimeReadyPlan),
         });
 
         if (isApiModeEnabled()) {
           void loadPlanFromApi(planId)
             .then((apiPlan) => {
+              const runtimeReadyApiPlan = ensurePlanRuntime(apiPlan);
               set((state) => {
                 const nextAllPlans = state.allPlans.map((plan) =>
-                  plan.document.planId === planId ? apiPlan : plan,
+                  plan.document.planId === planId ? runtimeReadyApiPlan : plan,
                 );
                 return {
                   allPlans: nextAllPlans,
                   ...(state.planId === planId
-                    ? createActivePlanState(apiPlan)
+                    ? createActivePlanState(runtimeReadyApiPlan)
                     : {}),
                 };
               });
+              syncPlanToApi(get, planId);
             })
             .catch((error) => {
               // eslint-disable-next-line no-console
@@ -582,15 +608,19 @@ export const usePlanStore = create<PlanStoreState>()(
         }
         try {
           const apiPlan = await loadPlanFromApi(planId);
+          const runtimeReadyApiPlan = ensurePlanRuntime(apiPlan);
           set((state) => {
             const nextAllPlans = state.allPlans.map((plan) =>
-              plan.document.planId === planId ? apiPlan : plan,
+              plan.document.planId === planId ? runtimeReadyApiPlan : plan,
             );
             return {
               allPlans: nextAllPlans,
-              ...(state.planId === planId ? createActivePlanState(apiPlan) : {}),
+              ...(state.planId === planId
+                ? createActivePlanState(runtimeReadyApiPlan)
+                : {}),
             };
           });
+          syncPlanToApi(get, planId);
           return { ok: true, data: undefined };
         } catch (error) {
           const message =
@@ -697,7 +727,7 @@ export const usePlanStore = create<PlanStoreState>()(
               aggregateTotal: convertedAggregateTotal,
               document: {
                 ...plan.document,
-                description: `${plan.document.description} | Währung: ${targetCurrency}`,
+                currencyCode: targetCurrency,
                 lastModified: new Date().toISOString(),
               },
             };
@@ -950,7 +980,6 @@ export const usePlanStore = create<PlanStoreState>()(
       releasePlanningDocument: (planId) => {
         let didRelease = false;
         let hasPlan = false;
-        let missingRuntime = false;
         let isReadOnly = false;
         set((state) => ({
           allPlans: state.allPlans.map((plan) => {
@@ -962,21 +991,19 @@ export const usePlanStore = create<PlanStoreState>()(
               isReadOnly = true;
               return plan;
             }
-            if (!plan.document.runtime) {
-              missingRuntime = true;
-              return plan;
-            }
+
+            const runtimeReadyPlan = ensurePlanRuntime(plan);
 
             const releasedAt = new Date().toISOString();
             didRelease = true;
             return {
-              ...plan,
+              ...runtimeReadyPlan,
               document: {
-                ...plan.document,
+                ...runtimeReadyPlan.document,
                 status: "Approved",
                 lastModified: releasedAt,
                 runtime: {
-                  ...plan.document.runtime,
+                  ...runtimeReadyPlan.document.runtime!,
                   releasedAt,
                 },
               },
@@ -999,12 +1026,12 @@ export const usePlanStore = create<PlanStoreState>()(
             },
           };
         }
-        if (missingRuntime || !didRelease) {
+        if (!didRelease) {
           return {
             ok: false,
             error: {
               code: "INVALID_STATUS",
-              message: "Erzeuge zuerst die Ebenenstruktur des Planungsdokuments.",
+              message: "Planungsdokument konnte nicht freigegeben werden.",
             },
           };
         }
@@ -1103,8 +1130,9 @@ export const usePlanStore = create<PlanStoreState>()(
             }
 
             imported = true;
+            const runtimeReadyPlan = ensurePlanRuntime(plan);
             const compareResult = planIntegration.comparison.applyComparisonDataResult(
-              plan,
+              runtimeReadyPlan,
               source,
             );
             if (!compareResult.ok) {
@@ -1175,8 +1203,9 @@ export const usePlanStore = create<PlanStoreState>()(
               return plan;
             }
 
+            const runtimeReadyPlan = ensurePlanRuntime(plan);
             const distributedPlan = distributePlanningObjectTopDown(
-              plan,
+              runtimeReadyPlan,
               nodeId,
               distributionType,
             );

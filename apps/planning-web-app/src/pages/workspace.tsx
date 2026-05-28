@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 import { useParams } from "react-router-dom";
 import { usePlanStore } from "@/store/usePlanStore";
@@ -25,12 +25,9 @@ import {
 } from "@/components/ui/dialog";
 import {
   ArrowDownToLine,
-  CircleHelp,
-  Lock,
   Maximize2,
   Minimize2,
   MoreVertical,
-  Unlock,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -224,10 +221,14 @@ const NodeDetailItem = ({
   numeric?: boolean;
 }) => (
   <div className="space-y-1">
-    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+    <p className="text-[11px] font-semibold uppercase tracking-[0.06em] leading-4 text-slate-500">
       {label}
     </p>
-    <p className={`text-2xl leading-none text-foreground ${numeric ? "font-mono" : ""}`}>
+    <p
+      className={`text-[20px] leading-[1.1] text-foreground ${
+        numeric ? "font-mono whitespace-nowrap" : "break-words"
+      }`}
+    >
       {value}
     </p>
   </div>
@@ -238,9 +239,6 @@ export default function Workspace() {
   const deletePlan = usePlanStore((state) => state.deletePlan);
   const updatePlanMetadata = usePlanStore((state) => state.updatePlanMetadata);
   const setPlanStatus = usePlanStore((state) => state.setPlanStatus);
-  const createPlanningDocument = usePlanStore(
-    (state) => state.createPlanningDocument,
-  );
   const releasePlanningDocument = usePlanStore(
     (state) => state.releasePlanningDocument,
   );
@@ -259,15 +257,11 @@ export default function Workspace() {
   const { planId } = useParams();
   const [isNavigating, setIsNavigating] = useState(false);
   const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
-  const [lockedPercentNodeIds, setLockedPercentNodeIds] = useState<Set<string>>(
-    () => new Set(),
-  );
   const [currencyCode, setCurrencyCode] = useState<CurrencyCode>("EUR");
   const [conversionFactorInput, setConversionFactorInput] = useState("1.00");
   const [roundingMode, setRoundingMode] = useState<RoundingMode>("commercial");
   const [roundingPrecisionMoney, setRoundingPrecisionMoney] = useState(2);
   const [roundingPrecisionPhysical, setRoundingPrecisionPhysical] = useState(3);
-  const [enforcePercentPlanning, setEnforcePercentPlanning] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editPlanName, setEditPlanName] = useState("");
@@ -296,15 +290,6 @@ export default function Workspace() {
         toast.error(result.error.message);
       }
     }
-  };
-  const handleCreatePlanningDocument = () => {
-    if (!planId) return;
-    const result = createPlanningDocument(planId);
-    if (!result.ok) {
-      toast.error(result.error.message);
-      return;
-    }
-    toast.success("Planungsdokument, Ebenen und Buffer wurden erzeugt.");
   };
   const handleReleasePlanningDocument = () => {
     if (!planId) return;
@@ -372,7 +357,7 @@ export default function Workspace() {
     const sourceCurrency = (obj.document.currencyCode ?? "EUR") as CurrencyCode;
     const targetCurrency = currencyCode;
     if (sourceCurrency === targetCurrency) {
-      toast.message("Quell- und Zielwährung sind identisch.");
+      toast.message("Quell- und ZielwÃ¤hrung sind identisch.");
       return;
     }
 
@@ -519,7 +504,6 @@ export default function Workspace() {
   >(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showHelpPanel, setShowHelpPanel] = useState(false);
   const [changeLog, setChangeLog] = useState<ChangeLogEntry[]>([]);
   const [showAllChangeLog, setShowAllChangeLog] = useState(false);
 
@@ -1116,7 +1100,7 @@ export default function Workspace() {
 
   const applyPendingChanges = async () => {
     if (obj.document.status === "Approved") {
-      toast.error("Freigegebene Pläne können nicht bearbeitet werden.");
+      toast.error("Freigegebene PlÃ¤ne kÃ¶nnen nicht bearbeitet werden.");
       return;
     }
 
@@ -1170,7 +1154,7 @@ export default function Workspace() {
       logs.push({
         id: `${node.id}-total-${timestamp}`,
         timestamp,
-        message: `${node.name}: VK Plan ${formatPlanNumber(before)} → ${formatPlanNumber(parsePlanInput(value))}`,
+        message: `${node.name}: VK Plan ${formatPlanNumber(before)} â†’ ${formatPlanNumber(parsePlanInput(value))}`,
       });
     });
 
@@ -1193,7 +1177,7 @@ export default function Workspace() {
             logs.push({
               id: `${node.id}-${month.date}-${timestamp}`,
               timestamp,
-              message: `${node.name} ${month.date}: ${formatPlanNumber(before)} → ${formatPlanNumber(parsePlanInput(draft))}`,
+              message: `${node.name} ${month.date}: ${formatPlanNumber(before)} â†’ ${formatPlanNumber(parsePlanInput(draft))}`,
             });
           }
         });
@@ -1220,9 +1204,9 @@ export default function Workspace() {
         return;
       }
       setChangeLog((prev) => [...logs.slice(-20), ...prev].slice(0, 100));
-      toast.success("Änderungen wurden übernommen.");
+      toast.success("Ã„nderungen wurden Ã¼bernommen.");
     } else {
-      toast.message("Keine Änderungen zum Übernehmen.");
+      toast.message("Keine Ã„nderungen zum Ãœbernehmen.");
     }
   };
 
@@ -1242,6 +1226,7 @@ export default function Workspace() {
     const totalShareFieldKey = `total-share-${node.id}`;
     const totalPlanError = inputErrors[totalPlanFieldKey];
     const totalShareError = inputErrors[totalShareFieldKey];
+    const percentLocked = obj.document.status === "Approved";
     const showMonthlyButton = true;
     const treeIndent = depth * 0.85;
     const labelIndent = depth * 0.9;
@@ -1287,32 +1272,6 @@ export default function Workspace() {
             >
               {formatLevelLabel(node.level)}
             </span>
-            <button
-              type="button"
-              className="inline-flex h-6 w-6 items-center justify-center rounded border border-slate-300 text-slate-600 hover:bg-slate-100"
-              onClick={(event) => {
-                event.stopPropagation();
-                setLockedPercentNodeIds((prev) => {
-                  const next = new Set(prev);
-                  if (next.has(node.id)) {
-                    next.delete(node.id);
-                    toast.success(`% PLAN für ${node.name} ist entsperrt.`);
-                  } else {
-                    next.add(node.id);
-                    toast.success(`% PLAN für ${node.name} ist gesperrt.`);
-                  }
-                  return next;
-                });
-              }}
-              title={isPercentLocked(node.id) ? "% PLAN entsperren" : "% PLAN sperren"}
-              aria-label={isPercentLocked(node.id) ? "% PLAN entsperren" : "% PLAN sperren"}
-            >
-              {isPercentLocked(node.id) ? (
-                <Lock className="h-3.5 w-3.5" />
-              ) : (
-                <Unlock className="h-3.5 w-3.5" />
-              )}
-            </button>
           </div>
         </TableCell>
         <TableCell className="w-[10%] text-right font-mono text-sm">
@@ -1358,7 +1317,7 @@ export default function Workspace() {
                   return;
                 }
               }}
-              disabled={obj.document.status === "Approved" || enforcePercentPlanning}
+              disabled={obj.document.status === "Approved" }
             />
             {totalPlanError ? (
               <p className="mt-1 text-right text-[11px] text-red-600">{totalPlanError}</p>
@@ -1367,45 +1326,58 @@ export default function Workspace() {
         </TableCell>
         <TableCell className="w-[10%]">
           <div>
-            <Input
-              type="text"
-              inputMode="decimal"
-              className={`h-8 bg-transparent px-0 text-right text-sm text-foreground shadow-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60 ${
-                totalShareError
-                  ? "border-red-500 focus-visible:border-red-500"
-                  : "border-emerald-200 bg-emerald-50/40 focus-visible:border-emerald-300"
-              }`}
-              value={totalShareInputValue}
-              onChange={(event) =>
-                updateTotalShareDraft(node.id, event.target.value)
-              }
-              onBlur={() => commitTotalShareDraft(node)}
-              onKeyDown={(event) => {
-                if (handleVerticalArrowNavigation(event)) return;
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  commitTotalShareDraft(node);
-                  if (event.shiftKey) {
-                    focusPreviousEditableInput(event.currentTarget);
-                  } else {
-                    focusNextEditableInput(event.currentTarget);
-                  }
-                  return;
-                }
-                if (event.key === "Escape") {
-                  event.preventDefault();
-                  clearFieldError(totalShareFieldKey);
-                  setTotalShareDrafts((prev) => {
-                    const next = { ...prev };
-                    delete next[node.id];
-                    return next;
-                  });
-                  event.currentTarget.blur();
-                  return;
-                }
-              }}
-              disabled={isPercentLocked(node.id)}
-            />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    className={`h-8 bg-transparent px-0 text-right text-sm text-foreground shadow-none focus-visible:ring-0 disabled:cursor-not-allowed ${
+                      totalShareError
+                        ? "border-red-500 focus-visible:border-red-500"
+                        : percentLocked
+                          ? "border-slate-300 bg-slate-100/90 text-slate-500"
+                          : "border-emerald-200 bg-emerald-50/40 focus-visible:border-emerald-300"
+                    }`}
+                    value={totalShareInputValue}
+                    onChange={(event) =>
+                      updateTotalShareDraft(node.id, event.target.value)
+                    }
+                    onBlur={() => commitTotalShareDraft(node)}
+                    onKeyDown={(event) => {
+                      if (handleVerticalArrowNavigation(event)) return;
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        commitTotalShareDraft(node);
+                        if (event.shiftKey) {
+                          focusPreviousEditableInput(event.currentTarget);
+                        } else {
+                          focusNextEditableInput(event.currentTarget);
+                        }
+                        return;
+                      }
+                      if (event.key === "Escape") {
+                        event.preventDefault();
+                        clearFieldError(totalShareFieldKey);
+                        setTotalShareDrafts((prev) => {
+                          const next = { ...prev };
+                          delete next[node.id];
+                          return next;
+                        });
+                        event.currentTarget.blur();
+                        return;
+                      }
+                    }}
+                    disabled={percentLocked}
+                  />
+                </div>
+              </TooltipTrigger>
+              {percentLocked ? (
+                <TooltipContent side="top">
+                  % PLAN ist fÃ¼r diese Ebene gesperrt. Bitte Werte auf Kindebene Ã¤ndern.
+                </TooltipContent>
+              ) : null}
+            </Tooltip>
             {totalShareError ? (
               <p className="mt-1 text-right text-[11px] text-red-600">{totalShareError}</p>
             ) : null}
@@ -1428,7 +1400,7 @@ export default function Workspace() {
                 disabled={
                   obj.document.status === "Approved" || !obj.document.runtime
                 }
-                aria-label={`Top-down für ${node.name} verteilen`}
+                aria-label={`Top-down fÃ¼r ${node.name} verteilen`}
                 title="Top-down verteilen"
               >
                 <ArrowDownToLine className="h-3.5 w-3.5" />
@@ -1441,7 +1413,7 @@ export default function Workspace() {
                 variant="outline"
                 className="h-9 w-9 p-0"
                 onClick={() => openMonthlyView(node.id)}
-                aria-label={`Monatsansicht für ${node.name} öffnen`}
+                aria-label={`Monatsansicht fÃ¼r ${node.name} Ã¶ffnen`}
                 title="Monatsansicht"
               >
                 <CalendarDays className="h-3.5 w-3.5" />
@@ -1492,9 +1464,6 @@ export default function Workspace() {
     }
     return ancestors;
   };
-  const isPercentLocked = (nodeId: string) =>
-    obj.document.status === "Approved" || lockedPercentNodeIds.has(nodeId);
-
   const selectedMonthlyNode = selectedMonthlyNodeId
     ? getNodeById(selectedMonthlyNodeId)
     : null;
@@ -1546,40 +1515,40 @@ export default function Workspace() {
   const formatPlanNumber = (value: number) => formatNumber(value, valuePrecision);
   const currencySymbol =
     currencyCode === "EUR"
-      ? "€"
+      ? "â‚¬"
       : currencyCode === "USD"
         ? "$"
         : currencyCode === "GBP"
-          ? "£"
+          ? "Â£"
           : "CHF";
   const renderNodeDetailsPanel = () => (
     <div className="h-full rounded-lg border border-border/80 bg-card">
-      <div className="border-b px-5 py-4">
-        <p className="text-[28px] font-semibold text-foreground">Ebenendetails</p>
+      <div className="border-b px-5 py-3">
+        <p className="text-[20px] font-semibold leading-7 text-foreground">Ebenendetails</p>
       </div>
       {selectedDrilldownNode ? (
-        <div className="space-y-6 px-5 py-5">
+        <div className="space-y-5 px-5 py-4">
           <NodeDetailItem label="Name" value={selectedDrilldownNode.name} />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <NodeDetailItem
               label="Ebene"
               value={formatLevelLabel(selectedDrilldownNode.level)}
             />
             <NodeDetailItem label="ID" value={selectedDrilldownNode.id} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <NodeDetailItem
               label="VK VJ"
-              value={`${formatPlanNumber(selectedDrilldownNode.metrics.refSalesAmount)} ${currencySymbol}`}
+              value={`${formatPlanNumber(selectedDrilldownNode.metrics.refSalesAmount)}\u00A0${currencySymbol}`}
               numeric
             />
             <NodeDetailItem
               label="VK Plan"
-              value={`${formatPlanNumber(selectedDrilldownPlanTotal)} ${currencySymbol}`}
+              value={`${formatPlanNumber(selectedDrilldownPlanTotal)}\u00A0${currencySymbol}`}
               numeric
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <NodeDetailItem
               label="% Plan"
               value={formatPercent(selectedDrilldownPlanPercent)}
@@ -1598,11 +1567,11 @@ export default function Workspace() {
           />
           {selectedDrilldownChildrenCount > 0 ? (
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.06em] leading-4 text-slate-500">
                 Verteilung Unterebenen (VK Plan)
               </p>
               <div className="flex items-center gap-3">
-                <svg viewBox="0 0 42 42" className="h-28 w-28">
+                <svg viewBox="0 0 42 42" className="h-24 w-24 shrink-0">
                   {(() => {
                     const children = selectedDrilldownNode.children ?? [];
                     const totals = children.map((child) => ({
@@ -1634,7 +1603,7 @@ export default function Workspace() {
                     });
                   })()}
                 </svg>
-                <div className="space-y-1 text-xs">
+                <div className="space-y-1 text-[13px] leading-5">
                   {(selectedDrilldownNode.children ?? []).slice(0, 6).map((child, index) => {
                     const colors = ["#2563eb", "#14b8a6", "#f59e0b", "#8b5cf6", "#ef4444", "#10b981"];
                     return (
@@ -1643,7 +1612,7 @@ export default function Workspace() {
                           className="inline-block h-2.5 w-2.5 rounded-full"
                           style={{ backgroundColor: colors[index % colors.length] }}
                         />
-                        <span className="text-muted-foreground">{child.name}</span>
+                        <span className="text-slate-600">{child.name}</span>
                       </div>
                     );
                   })}
@@ -1653,8 +1622,8 @@ export default function Workspace() {
           ) : null}
         </div>
       ) : (
-        <div className="px-5 py-8 text-sm text-muted-foreground">
-          Knoten auswählen, um Details zu sehen.
+        <div className="px-5 py-6 text-sm text-muted-foreground">
+          Knoten auswÃ¤hlen, um Details zu sehen.
         </div>
       )}
     </div>
@@ -1686,7 +1655,7 @@ export default function Workspace() {
                 {obj.document.status === "Approved"
                   ? "Freigegeben"
                   : obj.document.status === "InReview"
-                    ? "In Prüfung"
+                    ? "In PrÃ¼fung"
                     : "Entwurf"}
               </Badge>
             </div>
@@ -1696,7 +1665,7 @@ export default function Workspace() {
               {formatDate(obj.document.lastModified)}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Ausstehende Änderungen:{" "}
+              Ausstehende Ã„nderungen:{" "}
               <span className="font-medium text-foreground">
                 {Object.keys(totalPlanDrafts).length +
                   Object.keys(totalShareDrafts).length +
@@ -1719,15 +1688,9 @@ export default function Workspace() {
                 >
                   Bearbeiten
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={handleCreatePlanningDocument}
-                  disabled={obj.document.status === "Approved"}
-                >
-                  Ebenenstruktur erzeugen
-                </DropdownMenuItem>
                 {obj.document.status === "Approved" ? (
                   <DropdownMenuItem onClick={handleReopenPlanningDocument}>
-                    Planungsdokument wieder öffnen
+                    Planungsdokument wieder Ã¶ffnen
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem onClick={handleReleasePlanningDocument}>
@@ -1749,11 +1712,11 @@ export default function Workspace() {
                 <DropdownMenuSeparator />
                 {obj.document.status === "InReview" ? (
                   <DropdownMenuItem onClick={handleRemoveFromReview}>
-                    Aus Prüfung entfernen
+                    Aus PrÃ¼fung entfernen
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem onClick={handleInReview}>
-                    Zur Prüfung einreichen
+                    Zur PrÃ¼fung einreichen
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
@@ -1761,7 +1724,7 @@ export default function Workspace() {
                   variant="destructive"
                   onClick={() => setShowDeleteDialog(true)}
                 >
-                  Löschen
+                  LÃ¶schen
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -1811,9 +1774,9 @@ export default function Workspace() {
             </Dialog>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Plan wirklich löschen?</DialogTitle>
+                <DialogTitle>Plan wirklich lÃ¶schen?</DialogTitle>
                 <DialogDescription>
-                  Dieser Vorgang kann nicht rückgängig gemacht werden. Der Plan
+                  Dieser Vorgang kann nicht rÃ¼ckgÃ¤ngig gemacht werden. Der Plan
                   wird dauerhaft entfernt.
                 </DialogDescription>
               </DialogHeader>
@@ -1822,7 +1785,7 @@ export default function Workspace() {
                   <Button variant="outline">Abbrechen</Button>
                 </DialogClose>
                 <Button variant="destructive" onClick={handleDelete} autoFocus>
-                  Löschen
+                  LÃ¶schen
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -1848,15 +1811,6 @@ export default function Workspace() {
                 onClick={() => setIsDetailsDrawerOpen(true)}
               >
                 Ebenendetails
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => setShowHelpPanel((current) => !current)}
-              >
-                <CircleHelp className="mr-1 h-4 w-4" />
-                Hilfe
               </Button>
               <Button type="button" size="sm" variant="outline" onClick={handleFullscreenToggle}>
                 {isFullscreen ? (
@@ -1904,14 +1858,14 @@ export default function Workspace() {
                       </div>
                       <div>
                         <p className="text-xs uppercase text-muted-foreground">Status</p>
-                        <p className="text-sm">{obj.document.status === "Approved" ? "Freigegeben" : obj.document.status === "InReview" ? "In Prüfung" : "Entwurf"}</p>
+                        <p className="text-sm">{obj.document.status === "Approved" ? "Freigegeben" : obj.document.status === "InReview" ? "In PrÃ¼fung" : "Entwurf"}</p>
                       </div>
                       <div>
                         <p className="text-xs uppercase text-muted-foreground">Zuletzt bearbeitet</p>
                         <p className="text-sm">{formatDate(obj.document.lastModified)}</p>
                       </div>
                       <div>
-                        <p className="text-xs uppercase text-muted-foreground">Geschäftsjahr</p>
+                        <p className="text-xs uppercase text-muted-foreground">GeschÃ¤ftsjahr</p>
                         <p className="text-sm">{obj.document.fiscalYear ?? "-"}</p>
                       </div>
                       <div>
@@ -1941,15 +1895,15 @@ export default function Workspace() {
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/20 px-4 py-3">
                       <div className="text-sm">
                         <span className="font-medium">Planungslogik</span>
-                        <span className="mx-2 text-muted-foreground">·</span>
+                        <span className="mx-2 text-muted-foreground">Â·</span>
                         <span className="text-muted-foreground">
                           {obj.document.runtime
                             ? `${obj.document.runtime.levels.length} Ebenen, ${obj.document.runtime.buffers.length} aktive Buffer`
-                            : "Struktur noch nicht erzeugt"}
+                            : "Planungslogik aktiv"}
                         </span>
                         {hasPendingChanges ? (
                           <Badge variant="secondary" className="ml-3">
-                            Ungespeicherte Änderungen
+                            Ungespeicherte Ã„nderungen
                           </Badge>
                         ) : null}
 	                      </div>
@@ -2011,113 +1965,76 @@ export default function Workspace() {
 	                      </div>
 	                    </div>
 	                    <div className="flex flex-wrap items-center gap-2 border-b bg-background px-4 py-2 text-xs">
-	                      <span className="font-medium text-foreground">Steuerung</span>
-	                      <Button
-	                        type="button"
-	                        size="sm"
-	                        variant="outline"
-	                        className={toolbarButtonClass}
-	                        onClick={() => setEnforcePercentPlanning((current) => !current)}
-	                      >
-	                        {enforcePercentPlanning ? "Budgetschutz aktiv (%-Planung)" : "Budgetschutz aus"}
-	                      </Button>
-	                      <label className="text-muted-foreground">Währung</label>
-	                      <select
-	                        className="h-7 rounded border border-slate-300 bg-background px-2"
-	                        value={currencyCode}
-                        onChange={(event) => {
-                          const nextCurrency = event.target.value as CurrencyCode;
-                          setCurrencyCode(nextCurrency);
-                        }}
-	                      >
-	                        {CURRENCY_OPTIONS.map((currency) => (
-	                          <option key={currency} value={currency}>
-	                            {currency}
-	                          </option>
-	                        ))}
-	                      </select>
-	                      <label className="text-muted-foreground">Rundung</label>
-	                      <select
-	                        className="h-7 rounded border border-slate-300 bg-background px-2"
-	                        value={roundingMode}
-	                        onChange={(event) => {
-	                          const nextMode = event.target.value as RoundingMode;
-	                          setRoundingMode(nextMode);
-	                          if (planId) {
-	                            updatePlanningSettings(planId, { roundingMode: nextMode });
-	                          }
-	                        }}
-	                      >
-	                        <option value="commercial">Kaufmännisch</option>
-	                        <option value="symmetric">Symmetrisch</option>
-	                        <option value="up">Immer aufrunden</option>
-	                        <option value="down">Immer abrunden</option>
-	                      </select>
-	                      <label className="text-muted-foreground">Genauigkeit (Wert)</label>
-	                      <select
-	                        className="h-7 rounded border border-slate-300 bg-background px-2"
-	                        value={String(roundingPrecisionMoney)}
-	                        onChange={(event) => {
-	                          const nextPrecision = Number(event.target.value);
-	                          setRoundingPrecisionMoney(nextPrecision);
-	                          if (planId) {
-	                            updatePlanningSettings(planId, {
-	                              roundingPrecisionMoney: nextPrecision,
-	                            });
-	                          }
-	                        }}
-	                      >
-	                        <option value="0">0</option>
-	                        <option value="1">1</option>
-	                        <option value="2">2</option>
-	                        <option value="3">3</option>
-	                      </select>
-	                      <label className="text-muted-foreground">Genauigkeit (physisch)</label>
-	                      <select
-	                        className="h-7 rounded border border-slate-300 bg-background px-2"
-	                        value={String(roundingPrecisionPhysical)}
-	                        onChange={(event) => {
-	                          const nextPrecision = Number(event.target.value);
-	                          setRoundingPrecisionPhysical(nextPrecision);
-	                          if (planId) {
-	                            updatePlanningSettings(planId, {
-	                              roundingPrecisionPhysical: nextPrecision,
-	                            });
-	                          }
-	                        }}
-	                      >
-	                        <option value="0">0</option>
-	                        <option value="1">1</option>
-	                        <option value="2">2</option>
-	                        <option value="3">3</option>
-	                      </select>
-	                      <label className="text-muted-foreground">Kurs</label>
-	                      <Input
-	                        value={conversionFactorInput}
-	                        onChange={(event) => setConversionFactorInput(event.target.value)}
-	                        className="h-7 w-20 px-2 font-mono text-xs"
-	                      />
-	                      <Button
-	                        type="button"
-	                        size="sm"
-	                        variant="outline"
-	                        className={toolbarButtonClass}
-	                        onClick={handleApplyCurrencyConversion}
-	                      >
-	                        Währung anwenden
-	                      </Button>
-	                    </div>
-	                    {showHelpPanel ? (
-	                      <div className="border-b bg-muted/10 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-	                        <p><span className="font-medium text-foreground">Begriffe:</span> VK VJ = Verkaufswert Vorjahr, VK Plan = geplanter Verkaufswert, Entw. % = prozentuale Abweichung zu VK VJ.</p>
-	                        <p><span className="font-medium text-foreground">Regeln:</span> % Plan = (VK Plan / VK VJ) * 100. Entw. % = ((VK Plan - VK VJ) / VK VJ) * 100.</p>
-	                        <p><span className="font-medium text-foreground">Top-down:</span> verteilt Elternwerte auf Kinder nach Plan- oder Referenzgewichten.</p>
-	                        <p><span className="font-medium text-foreground">Rundung:</span> Berechnung mit der gewählten Rundungsregel und Genauigkeit.</p>
-	                      </div>
-	                    ) : null}
+  <label className="text-muted-foreground">Währung</label>
+  <select
+    className="h-7 rounded border border-slate-300 bg-background px-2"
+    value={currencyCode}
+    onChange={(event) => {
+      const nextCurrency = event.target.value as CurrencyCode;
+      setCurrencyCode(nextCurrency);
+    }}
+  >
+    {CURRENCY_OPTIONS.map((currency) => (
+      <option key={currency} value={currency}>
+        {currency}
+      </option>
+    ))}
+  </select>
+  <label className="text-muted-foreground">Kurs</label>
+  <Input
+    value={conversionFactorInput}
+    onChange={(event) => setConversionFactorInput(event.target.value)}
+    className="h-7 w-20 px-2 font-mono text-xs"
+  />
+  <Button
+    type="button"
+    size="sm"
+    variant="outline"
+    className={toolbarButtonClass}
+    onClick={handleApplyCurrencyConversion}
+  >
+    Währung anwenden
+  </Button>
+  <label className="text-muted-foreground">Rundung</label>
+  <select
+    className="h-7 rounded border border-slate-300 bg-background px-2"
+    value={roundingMode}
+    onChange={(event) => {
+      const nextMode = event.target.value as RoundingMode;
+      setRoundingMode(nextMode);
+      if (planId) {
+        updatePlanningSettings(planId, { roundingMode: nextMode });
+      }
+    }}
+  >
+    <option value="commercial">Kaufmännisch</option>
+    <option value="symmetric">Symmetrisch</option>
+    <option value="up">Immer aufrunden</option>
+    <option value="down">Immer abrunden</option>
+  </select>
+  <label className="text-muted-foreground">Genauigkeit (Wert)</label>
+  <select
+    className="h-7 rounded border border-slate-300 bg-background px-2"
+    value={String(roundingPrecisionMoney)}
+    onChange={(event) => {
+      const nextPrecision = Number(event.target.value);
+      setRoundingPrecisionMoney(nextPrecision);
+      if (planId) {
+        updatePlanningSettings(planId, {
+          roundingPrecisionMoney: nextPrecision,
+        });
+      }
+    }}
+  >
+    <option value="0">0</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+  </select>
+</div>
 	                      <div className="border-b bg-muted/5 px-4 py-2">
                         <div className="flex items-center justify-between">
-                          <p className="text-xs font-medium text-foreground">Letzte Änderungen</p>
+                          <p className="text-xs font-medium text-foreground">Letzte Ã„nderungen</p>
                           {changeLog.length > 10 ? (
                             <Button
                               type="button"
@@ -2139,7 +2056,7 @@ export default function Workspace() {
 	                          ))}
 	                          {changeLog.length === 0 ? (
 	                            <p className="text-xs text-muted-foreground">
-	                              Noch keine Änderungen protokolliert.
+	                              Noch keine Ã„nderungen protokolliert.
 	                            </p>
 	                          ) : null}
 	                        </div>
@@ -2188,7 +2105,7 @@ export default function Workspace() {
                                 <TooltipTrigger asChild>
                                   <button type="button" className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-border text-[10px] text-muted-foreground" aria-label="Info zu VK Plan">i</button>
                                 </TooltipTrigger>
-                                <TooltipContent side="top">VK Plan ist der geplante Verkaufswert für den Knoten.</TooltipContent>
+                                <TooltipContent side="top">VK Plan ist der geplante Verkaufswert fÃ¼r den Knoten.</TooltipContent>
                               </Tooltip>
                             </span>
                           </TableHead>
@@ -2220,7 +2137,7 @@ export default function Workspace() {
                                 <TooltipTrigger asChild>
                                   <button type="button" className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-border text-[10px] text-muted-foreground" aria-label="Info zu Entwicklung">i</button>
                                 </TooltipTrigger>
-                                <TooltipContent side="top">Entw. % zeigt die Abweichung von VK Plan gegenüber VK VJ.</TooltipContent>
+                                <TooltipContent side="top">Entw. % zeigt die Abweichung von VK Plan gegenÃ¼ber VK VJ.</TooltipContent>
                               </Tooltip>
                             </span>
                           </TableHead>
@@ -2231,7 +2148,7 @@ export default function Workspace() {
                                 <TooltipTrigger asChild>
                                   <button type="button" className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-border text-[10px] text-muted-foreground" aria-label="Info zur Monatsansicht">i</button>
                                 </TooltipTrigger>
-                                <TooltipContent side="top">Öffnet die Monatsverteilung für den Knoten.</TooltipContent>
+                                <TooltipContent side="top">Ã–ffnet die Monatsverteilung fÃ¼r den Knoten.</TooltipContent>
                               </Tooltip>
                             </span>
                           </TableHead>
@@ -2293,7 +2210,7 @@ export default function Workspace() {
                         <TableCell className="px-6 font-medium">
                           <InfoFieldLabel
                             label="Status"
-                            description="Aktueller Workflow-Status: Entwurf, In Prüfung oder Freigegeben."
+                            description="Aktueller Workflow-Status: Entwurf, In PrÃ¼fung oder Freigegeben."
                           />
                         </TableCell>
                         <TableCell className="px-6">
@@ -2316,7 +2233,7 @@ export default function Workspace() {
                             {obj.document.status === "Approved"
                               ? "Freigegeben"
                               : obj.document.status === "InReview"
-                                ? "In Prüfung"
+                                ? "In PrÃ¼fung"
                                 : "Entwurf"}
                           </Badge>
                         </TableCell>
@@ -2325,7 +2242,7 @@ export default function Workspace() {
                         <TableCell className="px-6 font-medium">
                           <InfoFieldLabel
                             label="Zuletzt bearbeitet"
-                            description="Zeitpunkt der letzten gespeicherten Änderung."
+                            description="Zeitpunkt der letzten gespeicherten Ã„nderung."
                           />
                         </TableCell>
                         <TableCell className="px-6">
@@ -2337,14 +2254,14 @@ export default function Workspace() {
                           Browser Support
                         </TableCell>
                         <TableCell className="px-6">
-                          Getestet für aktuelle Versionen von Edge und Chrome.
+                          Getestet fÃ¼r aktuelle Versionen von Edge und Chrome.
                         </TableCell>
                       </TableRow>
                       <TableRow className="hover:bg-muted/30">
                         <TableCell className="px-6 font-medium">
                           <InfoFieldLabel
-                            label="Geschäftsjahr"
-                            description="Jahr, für das die Planung erstellt wird."
+                            label="GeschÃ¤ftsjahr"
+                            description="Jahr, fÃ¼r das die Planung erstellt wird."
                           />
                         </TableCell>
                         <TableCell className="px-6">
@@ -2355,7 +2272,7 @@ export default function Workspace() {
                         <TableCell className="px-6 font-medium">
                           <InfoFieldLabel
                             label="Vergleichsjahr"
-                            description="Referenzjahr für Vorjahres- und Vergleichswerte."
+                            description="Referenzjahr fÃ¼r Vorjahres- und Vergleichswerte."
                           />
                         </TableCell>
                         <TableCell className="px-6">
@@ -2377,7 +2294,7 @@ export default function Workspace() {
                         <TableCell className="px-6 font-medium">
                           <InfoFieldLabel
                             label="Referenzperiode"
-                            description="Datumsbereich der Referenzwerte für den Vergleich."
+                            description="Datumsbereich der Referenzwerte fÃ¼r den Vergleich."
                           />
                         </TableCell>
                         <TableCell className="px-6">
@@ -2425,7 +2342,7 @@ export default function Workspace() {
                         <TableCell className="px-6 font-medium align-top">
                           <InfoFieldLabel
                             label="Produkthierarchie(n)"
-                            description="Ausgewählte Segment/Familie/Klasse-Kombinationen für den Plan."
+                            description="AusgewÃ¤hlte Segment/Familie/Klasse-Kombinationen fÃ¼r den Plan."
                           />
                         </TableCell>
                         <TableCell className="px-6">
@@ -2546,7 +2463,7 @@ export default function Workspace() {
                           <p className="text-xs text-muted-foreground">
                             <InfoFieldLabel
                               label="Entw. %"
-                              description="Prozentuale Abweichung von VK Plan gegenüber VK VJ."
+                              description="Prozentuale Abweichung von VK Plan gegenÃ¼ber VK VJ."
                             />
                           </p>
                           <p className="text-sm text-foreground">
@@ -2815,7 +2732,7 @@ export default function Workspace() {
             <button
               type="button"
               className="absolute inset-0 bg-black/35"
-              aria-label="Ebenendetails schließen"
+              aria-label="Ebenendetails schlieÃŸen"
               onClick={() => setIsDetailsDrawerOpen(false)}
             />
             <div className="absolute right-0 top-0 h-full w-[86vw] max-w-[360px] overflow-y-auto bg-background p-3 shadow-xl">
@@ -2826,7 +2743,7 @@ export default function Workspace() {
                   variant="outline"
                   onClick={() => setIsDetailsDrawerOpen(false)}
                 >
-                  Schließen
+                  SchlieÃŸen
                 </Button>
               </div>
               {renderNodeDetailsPanel()}
@@ -2837,3 +2754,4 @@ export default function Workspace() {
     </div>
   );
 }
+
