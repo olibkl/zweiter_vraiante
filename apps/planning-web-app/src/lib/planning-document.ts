@@ -7,6 +7,7 @@ import type {
   PlanningNode,
   PlanningObject,
 } from "@/types/planning";
+import { DEFAULT_ROUNDING_MODE, roundNonNegative } from "@/lib/rounding";
 
 const levelOrder: HierarchyLevel[] = [
   "Total",
@@ -24,7 +25,8 @@ const levelDescriptions: Record<HierarchyLevel, string> = {
   Brick: "Brick",
 };
 
-const roundAmount = (value: number) => Math.max(0, Math.round(value));
+const roundAmount = (value: number) =>
+  roundNonNegative(value, DEFAULT_ROUNDING_MODE, 0);
 
 const sumPlanValues = (monthlyValues: PlanningMonthlyValue[]) =>
   monthlyValues.reduce((sum, value) => sum + value.planSalesAmount, 0);

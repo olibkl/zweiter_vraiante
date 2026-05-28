@@ -3,6 +3,8 @@ export type HierarchyLevel = "Total" | "Segment" | "Family" | "Class" | "Brick";
 export type PlanningType = "Umsatz" | "Anzahl";
 export type PlanningDateUnit = "Day" | "Week" | "Month" | "Quarter" | "Year";
 export type PlanningDistributionType = "PlanValues" | "ReferenceValues";
+export type PlanningRoundingMode = "commercial" | "symmetric" | "up" | "down";
+export type PlanningSumPolicy = "children_sum";
 
 export interface PlanningPeriod {
   startDate: string;
@@ -78,6 +80,11 @@ export interface PlanningObjectDocument {
   referencePeriod?: PlanningPeriod;
   status: PlanningStatus;
   selectedHierarchies?: SelectedHierarchy[];
+  currencyCode?: "EUR" | "USD" | "GBP" | "CHF";
+  roundingMode?: PlanningRoundingMode;
+  roundingPrecisionMoney?: number;
+  roundingPrecisionPhysical?: number;
+  sumPolicy?: PlanningSumPolicy;
   runtime?: PlanningDocumentRuntime;
   lastModified: string;
 }

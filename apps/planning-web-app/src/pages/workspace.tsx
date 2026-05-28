@@ -57,17 +57,17 @@ import {
   roundNonNegative,
 } from "@/lib/rounding";
 
-const formatNumber = (value: number) => {
+const formatNumber = (value: number, precision = 2) => {
   return new Intl.NumberFormat("de-DE", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: precision,
+    maximumFractionDigits: precision,
   }).format(value);
 };
 
-const formatPercent = (value: number) => {
+const formatPercent = (value: number, precision = 2) => {
   return new Intl.NumberFormat("de-DE", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: precision,
+    maximumFractionDigits: precision,
   }).format(value);
 };
 
@@ -251,6 +251,7 @@ export default function Workspace() {
   );
   const distributeTopDown = usePlanStore((state) => state.distributeTopDown);
   const convertPlanCurrency = usePlanStore((state) => state.convertPlanCurrency);
+  const updatePlanningSettings = usePlanStore((state) => state.updatePlanningSettings);
   const commitPlanToApi = usePlanStore((state) => state.commitPlanToApi);
   const refreshPlanFromApi = usePlanStore((state) => state.refreshPlanFromApi);
   const { planId } = useParams();
@@ -262,7 +263,8 @@ export default function Workspace() {
   const [currencyCode, setCurrencyCode] = useState<CurrencyCode>("EUR");
   const [conversionFactorInput, setConversionFactorInput] = useState("1.00");
   const [roundingMode, setRoundingMode] = useState<RoundingMode>("commercial");
-  const [roundingPrecision, setRoundingPrecision] = useState(2);
+  const [roundingPrecisionMoney, setRoundingPrecisionMoney] = useState(2);
+  const [roundingPrecisionPhysical, setRoundingPrecisionPhysical] = useState(3);
   const [enforcePercentPlanning, setEnforcePercentPlanning] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -395,6 +397,15 @@ export default function Workspace() {
     (state) => state.updateNodeBatchMonthlyPlanValues,
   );
   const obj = allPlans.find((p) => p.document.planId === planId);
+  useEffect(() => {
+    if (!obj) return;
+    setCurrencyCode((obj.document.currencyCode ?? "EUR") as CurrencyCode);
+    setRoundingMode((obj.document.roundingMode ?? DEFAULT_ROUNDING_MODE) as RoundingMode);
+    setRoundingPrecisionMoney(obj.document.roundingPrecisionMoney ?? DEFAULT_MONEY_PRECISION);
+    setRoundingPrecisionPhysical(
+      obj.document.roundingPrecisionPhysical ?? DEFAULT_PHYSICAL_PRECISION,
+    );
+  }, [obj?.document.planId]);
   const planningPeriod = obj
     ? resolvePlanningPeriod(obj.document.planningPeriod, obj.document.fiscalYear)
     : undefined;
@@ -1135,7 +1146,7 @@ export default function Workspace() {
       logs.push({
         id: `${node.id}-total-${timestamp}`,
         timestamp,
-        message: `${node.name}: VK Plan ${formatNumber(before)} → ${formatNumber(parsePlanInput(value))}`,
+        message: `${node.name}: VK Plan ${formatPlanNumber(before)} → ${formatPlanNumber(parsePlanInput(value))}`,
       });
     });
 
@@ -1158,7 +1169,7 @@ export default function Workspace() {
             logs.push({
               id: `${node.id}-${month.date}-${timestamp}`,
               timestamp,
-              message: `${node.name} ${month.date}: ${formatNumber(before)} → ${formatNumber(parsePlanInput(draft))}`,
+              message: `${node.name} ${month.date}: ${formatPlanNumber(before)} → ${formatPlanNumber(parsePlanInput(draft))}`,
             });
           }
         });
@@ -1281,7 +1292,7 @@ export default function Workspace() {
           </div>
         </TableCell>
         <TableCell className="w-[10%] text-right font-mono text-sm">
-          {formatNumber(node.metrics.refSalesAmount)}
+          {formatPlanNumber(node.metrics.refSalesAmount)}
         </TableCell>
         <TableCell className="w-[10%] text-right font-mono text-sm">
           {formatPercent(100)}
@@ -1502,17 +1513,13 @@ export default function Workspace() {
     "border-slate-300 text-slate-800 hover:bg-slate-100 focus-visible:ring-0 focus-visible:border-slate-400";
   const toolbarToggleActiveClass =
     "border-slate-400 bg-slate-100 text-slate-900 hover:bg-slate-100 focus-visible:ring-0 focus-visible:border-slate-500";
-  const roundWithSettings = (value: number) => {
-    const factor = 10 ** roundingPrecision;
-    const scaled = value * factor;
-    if (roundingMode === "up") return Math.ceil(scaled) / factor;
-    if (roundingMode === "down") return Math.floor(scaled) / factor;
-    if (roundingMode === "symmetric") {
-      return (Math.sign(scaled) * Math.floor(Math.abs(scaled) + 0.5)) / factor;
-    }
-    return Math.round(scaled) / factor;
-  };
-  const asPlannedAmount = (value: number) => Math.max(0, roundWithSettings(value));
+  const asPlannedAmount = (value: number) =>
+    roundNonNegative(value, roundingMode, roundingPrecisionMoney);
+  const valuePrecision =
+    obj?.document.planningType === "Anzahl"
+      ? roundingPrecisionPhysical
+      : roundingPrecisionMoney;
+  const formatPlanNumber = (value: number) => formatNumber(value, valuePrecision);
   const currencySymbol =
     currencyCode === "EUR"
       ? "€"
@@ -1539,12 +1546,12 @@ export default function Workspace() {
           <div className="grid grid-cols-2 gap-4">
             <NodeDetailItem
               label="VK VJ"
-              value={`${formatNumber(selectedDrilldownNode.metrics.refSalesAmount)} ${currencySymbol}`}
+              value={`${formatPlanNumber(selectedDrilldownNode.metrics.refSalesAmount)} ${currencySymbol}`}
               numeric
             />
             <NodeDetailItem
               label="VK Plan"
-              value={`${formatNumber(selectedDrilldownPlanTotal)} ${currencySymbol}`}
+              value={`${formatPlanNumber(selectedDrilldownPlanTotal)} ${currencySymbol}`}
               numeric
             />
           </div>
@@ -1994,7 +2001,13 @@ export default function Workspace() {
 	                      <select
 	                        className="h-7 rounded border border-slate-300 bg-background px-2"
 	                        value={currencyCode}
-	                        onChange={(event) => setCurrencyCode(event.target.value as CurrencyCode)}
+	                        onChange={(event) => {
+	                          const nextCurrency = event.target.value as CurrencyCode;
+	                          setCurrencyCode(nextCurrency);
+	                          if (planId) {
+	                            updatePlanningSettings(planId, { currencyCode: nextCurrency });
+	                          }
+	                        }}
 	                      >
 	                        {CURRENCY_OPTIONS.map((currency) => (
 	                          <option key={currency} value={currency}>
@@ -2006,18 +2019,51 @@ export default function Workspace() {
 	                      <select
 	                        className="h-7 rounded border border-slate-300 bg-background px-2"
 	                        value={roundingMode}
-	                        onChange={(event) => setRoundingMode(event.target.value as RoundingMode)}
+	                        onChange={(event) => {
+	                          const nextMode = event.target.value as RoundingMode;
+	                          setRoundingMode(nextMode);
+	                          if (planId) {
+	                            updatePlanningSettings(planId, { roundingMode: nextMode });
+	                          }
+	                        }}
 	                      >
 	                        <option value="commercial">Kaufmännisch</option>
 	                        <option value="symmetric">Symmetrisch</option>
 	                        <option value="up">Immer aufrunden</option>
 	                        <option value="down">Immer abrunden</option>
 	                      </select>
-	                      <label className="text-muted-foreground">Genauigkeit</label>
+	                      <label className="text-muted-foreground">Genauigkeit (Wert)</label>
 	                      <select
 	                        className="h-7 rounded border border-slate-300 bg-background px-2"
-	                        value={String(roundingPrecision)}
-	                        onChange={(event) => setRoundingPrecision(Number(event.target.value))}
+	                        value={String(roundingPrecisionMoney)}
+	                        onChange={(event) => {
+	                          const nextPrecision = Number(event.target.value);
+	                          setRoundingPrecisionMoney(nextPrecision);
+	                          if (planId) {
+	                            updatePlanningSettings(planId, {
+	                              roundingPrecisionMoney: nextPrecision,
+	                            });
+	                          }
+	                        }}
+	                      >
+	                        <option value="0">0</option>
+	                        <option value="1">1</option>
+	                        <option value="2">2</option>
+	                        <option value="3">3</option>
+	                      </select>
+	                      <label className="text-muted-foreground">Genauigkeit (physisch)</label>
+	                      <select
+	                        className="h-7 rounded border border-slate-300 bg-background px-2"
+	                        value={String(roundingPrecisionPhysical)}
+	                        onChange={(event) => {
+	                          const nextPrecision = Number(event.target.value);
+	                          setRoundingPrecisionPhysical(nextPrecision);
+	                          if (planId) {
+	                            updatePlanningSettings(planId, {
+	                              roundingPrecisionPhysical: nextPrecision,
+	                            });
+	                          }
+	                        }}
 	                      >
 	                        <option value="0">0</option>
 	                        <option value="1">1</option>
@@ -2140,7 +2186,7 @@ export default function Workspace() {
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="max-w-72">
                                   VK% = (VK Plan / VK VJ) * 100. Die Anzeige wird auf
-                                  eine Nachkommastelle gerundet.
+                                  die konfigurierte Genauigkeit gerundet.
                                   Beispiel: 1049 / 1000 * 100 = 104,9%.
                                 </TooltipContent>
                               </Tooltip>
@@ -2441,7 +2487,7 @@ export default function Workspace() {
                             />
                           </p>
                           <p className="font-mono text-sm font-medium">
-                            {formatNumber(
+                            {formatPlanNumber(
                               selectedMonthlyNode.metrics.refSalesAmount,
                             )}
                           </p>
@@ -2454,7 +2500,7 @@ export default function Workspace() {
                             />
                           </p>
                           <p className="font-mono text-sm font-medium text-foreground">
-                            {formatNumber(selectedMonthlyTotal)}
+                            {formatPlanNumber(selectedMonthlyTotal)}
                           </p>
                         </div>
                         <div className="flex flex-col items-center justify-center px-3 py-3 text-center">
@@ -2481,7 +2527,7 @@ export default function Workspace() {
                             />
                           </p>
                           <p className="font-mono text-sm font-medium">
-                            {formatNumber(selectedMonthlyTotal)}
+                            {formatPlanNumber(selectedMonthlyTotal)}
                           </p>
                         </div>
                         <div className="flex flex-col items-center justify-center px-3 py-3 text-center">
@@ -2492,7 +2538,7 @@ export default function Workspace() {
                             />
                           </p>
                           <p className="font-mono text-sm font-medium">
-                            {formatNumber(
+                            {formatPlanNumber(
                               Math.round(
                                 selectedMonthlyTotal /
                                   Math.max(
@@ -2574,7 +2620,7 @@ export default function Workspace() {
                                     Monat
                                   </TableCell>
                                   <TableCell className="w-[11%] text-right font-mono text-sm">
-                                    {formatNumber(refValue)}
+                                    {formatPlanNumber(refValue)}
                                   </TableCell>
                                   <TableCell className="w-[11%] text-right text-sm">
                                     {formatPercent(
