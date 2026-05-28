@@ -1,0 +1,21 @@
+# Build Artifacts
+dist/
+build/
+*.pyc
+__pycache__/
+node_modules/
+
+# OS/Editor Noise
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.venv/
+env/
+
+# Local Netlify folder
+.netlify

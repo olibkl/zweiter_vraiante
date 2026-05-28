@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-05-27T20:10:29.256Z",
+  "items": [
+    {
+      "planId": "smoke-plan-001",
+      "version": 2,
+      "plan": {
+        "document": {
+          "planId": "smoke-plan-001",
+          "planName": "Smoke Plan",
+          "planningType": "Umsatz",
+          "description": "smoke",
+          "status": "InReview",
+          "lastModified": "2026-05-27T20:10:29.256Z",
+          "lastModifiedBy": "smoke-reviewer"
+        },
+        "data": []
+      }
+    }
+  ]
+}

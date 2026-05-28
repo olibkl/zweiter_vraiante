@@ -1,0 +1,19 @@
+{
+  "name": "planning-api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "node index.js",
+    "start": "node index.js",
+    "test:smoke": "node smoke-test.mjs"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jose": "^5.9.6"
+  }
+}

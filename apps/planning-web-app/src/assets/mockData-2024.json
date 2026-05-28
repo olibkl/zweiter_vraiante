@@ -1,0 +1,1659 @@
+{
+  "document": {
+    "planId": "PLAN-2024-001",
+    "planName": "Umsatzplanung 2024",
+    "planningType": "Umsatz",
+    "description": "Mock-Plan für die Umsatzplanung 2024.",
+    "status": "Approved",
+    "selectedHierarchies": [
+      {
+        "segment": "Bekleidung",
+        "family": "Herrenbekleidung",
+        "className": "Outerwear"
+      },
+      {
+        "segment": "Schuhe",
+        "family": "New Family 1",
+        "className": "New Class 1"
+      }
+    ],
+    "lastModified": "2024-08-20",
+    "fiscalYear": "2024",
+    "comparisonYear": "2023"
+  },
+  "aggregateTotal": {
+    "id": "TOTAL-PLAN-2024-001",
+    "name": "Gesamt",
+    "metrics": {
+      "refSalesAmount": 900000,
+      "refCostOfSales": 400000,
+      "planSalesAmount": 950000
+    },
+    "monthlyValues": [
+      {
+        "date": "01.01.2024",
+        "refSalesAmount": 60000,
+        "planSalesAmount": 65000
+      },
+      {
+        "date": "01.02.2024",
+        "refSalesAmount": 65000,
+        "planSalesAmount": 70000
+      }
+    ],
+    "calculatedAt": "2024-12-31"
+  },
+  "data": [
+    {
+      "id": "SEG-1000",
+      "level": "Segment",
+      "name": "Bekleidung",
+      "metrics": {
+        "refSalesAmount": 1000000,
+        "refCostOfSales": 620000,
+        "planSalesAmount": 1100000
+      },
+      "children": [
+        {
+          "id": "FAM-1001",
+          "level": "Family",
+          "name": "Herrenbekleidung",
+          "metrics": {
+            "refSalesAmount": 500000,
+            "refCostOfSales": 305000,
+            "planSalesAmount": 550000
+          },
+          "children": [
+            {
+              "id": "CLA-1101",
+              "level": "Class",
+              "name": "Outerwear",
+              "metrics": {
+                "refSalesAmount": 300000,
+                "refCostOfSales": 186000,
+                "planSalesAmount": 330000
+              },
+              "children": [
+                {
+                  "id": "BRI-1111",
+                  "level": "Brick",
+                  "name": "Jacken",
+                  "metrics": {
+                    "refSalesAmount": 180000,
+                    "refCostOfSales": 111000,
+                    "planSalesAmount": 198000
+                  },
+                  "children": [],
+                  "monthlyValues": [
+                    {
+                      "date": "01.01.2026",
+                      "refSalesAmount": 11160,
+                      "planSalesAmount": 12276
+                    },
+                    {
+                      "date": "01.02.2026",
+                      "refSalesAmount": 11880,
+                      "planSalesAmount": 13068
+                    },
+                    {
+                      "date": "01.03.2026",
+                      "refSalesAmount": 10620,
+                      "planSalesAmount": 11682
+                    },
+                    {
+                      "date": "01.04.2026",
+                      "refSalesAmount": 10080,
+                      "planSalesAmount": 10890
+                    },
+                    {
+                      "date": "01.05.2026",
+                      "refSalesAmount": 12420,
+                      "planSalesAmount": 13464
+                    },
+                    {
+                      "date": "01.06.2026",
+                      "refSalesAmount": 12780,
+                      "planSalesAmount": 14058
+                    },
+                    {
+                      "date": "01.07.2026",
+                      "refSalesAmount": 12780,
+                      "planSalesAmount": 14058
+                    },
+                    {
+                      "date": "01.08.2026",
+                      "refSalesAmount": 13500,
+                      "planSalesAmount": 15048
+                    },
+                    {
+                      "date": "01.09.2026",
+                      "refSalesAmount": 15660,
+                      "planSalesAmount": 17226
+                    },
+                    {
+                      "date": "01.10.2026",
+                      "refSalesAmount": 17640,
+                      "planSalesAmount": 19404
+                    },
+                    {
+                      "date": "01.11.2026",
+                      "refSalesAmount": 19620,
+                      "planSalesAmount": 21384
+                    },
+                    {
+                      "date": "01.12.2026",
+                      "refSalesAmount": 31860,
+                      "planSalesAmount": 35244
+                    }
+                  ]
+                },
+                {
+                  "id": "BRI-1112",
+                  "level": "Brick",
+                  "name": "Mäntel",
+                  "metrics": {
+                    "refSalesAmount": 120000,
+                    "refCostOfSales": 75000,
+                    "planSalesAmount": 132000
+                  },
+                  "children": [],
+                  "monthlyValues": [
+                    {
+                      "date": "01.01.2026",
+                      "refSalesAmount": 7440,
+                      "planSalesAmount": 8184
+                    },
+                    {
+                      "date": "01.02.2026",
+                      "refSalesAmount": 7920,
+                      "planSalesAmount": 8712
+                    },
+                    {
+                      "date": "01.03.2026",
+                      "refSalesAmount": 7080,
+                      "planSalesAmount": 7788
+                    },
+                    {
+                      "date": "01.04.2026",
+                      "refSalesAmount": 6720,
+                      "planSalesAmount": 7260
+                    },
+                    {
+                      "date": "01.05.2026",
+                      "refSalesAmount": 8280,
+                      "planSalesAmount": 8976
+                    },
+                    {
+                      "date": "01.06.2026",
+                      "refSalesAmount": 8520,
+                      "planSalesAmount": 9372
+                    },
+                    {
+                      "date": "01.07.2026",
+                      "refSalesAmount": 8520,
+                      "planSalesAmount": 9372
+                    },
+                    {
+                      "date": "01.08.2026",
+                      "refSalesAmount": 9000,
+                      "planSalesAmount": 10032
+                    },
+                    {
+                      "date": "01.09.2026",
+                      "refSalesAmount": 10440,
+                      "planSalesAmount": 11484
+                    },
+                    {
+                      "date": "01.10.2026",
+                      "refSalesAmount": 11760,
+                      "planSalesAmount": 12936
+                    },
+                    {
+                      "date": "01.11.2026",
+                      "refSalesAmount": 13080,
+                      "planSalesAmount": 14256
+                    },
+                    {
+                      "date": "01.12.2026",
+                      "refSalesAmount": 21240,
+                      "planSalesAmount": 23496
+                    }
+                  ]
+                }
+              ],
+              "monthlyValues": [
+                {
+                  "date": "01.01.2026",
+                  "refSalesAmount": 18600,
+                  "planSalesAmount": 20460
+                },
+                {
+                  "date": "01.02.2026",
+                  "refSalesAmount": 19800,
+                  "planSalesAmount": 21780
+                },
+                {
+                  "date": "01.03.2026",
+                  "refSalesAmount": 17700,
+                  "planSalesAmount": 19470
+                },
+                {
+                  "date": "01.04.2026",
+                  "refSalesAmount": 16800,
+                  "planSalesAmount": 18150
+                },
+                {
+                  "date": "01.05.2026",
+                  "refSalesAmount": 20700,
+                  "planSalesAmount": 22440
+                },
+                {
+                  "date": "01.06.2026",
+                  "refSalesAmount": 21300,
+                  "planSalesAmount": 23430
+                },
+                {
+                  "date": "01.07.2026",
+                  "refSalesAmount": 21300,
+                  "planSalesAmount": 23430
+                },
+                {
+                  "date": "01.08.2026",
+                  "refSalesAmount": 22500,
+                  "planSalesAmount": 25080
+                },
+                {
+                  "date": "01.09.2026",
+                  "refSalesAmount": 26100,
+                  "planSalesAmount": 28710
+                },
+                {
+                  "date": "01.10.2026",
+                  "refSalesAmount": 29400,
+                  "planSalesAmount": 32340
+                },
+                {
+                  "date": "01.11.2026",
+                  "refSalesAmount": 32700,
+                  "planSalesAmount": 35640
+                },
+                {
+                  "date": "01.12.2026",
+                  "refSalesAmount": 53100,
+                  "planSalesAmount": 58740
+                }
+              ]
+            },
+            {
+              "id": "CLA-1102",
+              "level": "Class",
+              "name": "Basics",
+              "metrics": {
+                "refSalesAmount": 200000,
+                "refCostOfSales": 119000,
+                "planSalesAmount": 220000
+              },
+              "children": [
+                {
+                  "id": "BRI-1121",
+                  "level": "Brick",
+                  "name": "T-Shirts",
+                  "metrics": {
+                    "refSalesAmount": 120000,
+                    "refCostOfSales": 71000,
+                    "planSalesAmount": 132000
+                  },
+                  "children": [],
+                  "monthlyValues": [
+                    {
+                      "date": "01.01.2026",
+                      "refSalesAmount": 7440,
+                      "planSalesAmount": 8184
+                    },
+                    {
+                      "date": "01.02.2026",
+                      "refSalesAmount": 7920,
+                      "planSalesAmount": 8712
+                    },
+                    {
+                      "date": "01.03.2026",
+                      "refSalesAmount": 7080,
+                      "planSalesAmount": 7788
+                    },
+                    {
+                      "date": "01.04.2026",
+                      "refSalesAmount": 6720,
+                      "planSalesAmount": 7260
+                    },
+                    {
+                      "date": "01.05.2026",
+                      "refSalesAmount": 8280,
+                      "planSalesAmount": 8976
+                    },
+                    {
+                      "date": "01.06.2026",
+                      "refSalesAmount": 8520,
+                      "planSalesAmount": 9372
+                    },
+                    {
+                      "date": "01.07.2026",
+                      "refSalesAmount": 8520,
+                      "planSalesAmount": 9372
+                    },
+                    {
+                      "date": "01.08.2026",
+                      "refSalesAmount": 9000,
+                      "planSalesAmount": 10032
+                    },
+                    {
+                      "date": "01.09.2026",
+                      "refSalesAmount": 10440,
+                      "planSalesAmount": 11484
+                    },
+                    {
+                      "date": "01.10.2026",
+                      "refSalesAmount": 11760,
+                      "planSalesAmount": 12936
+                    },
+                    {
+                      "date": "01.11.2026",
+                      "refSalesAmount": 13080,
+                      "planSalesAmount": 14256
+                    },
+                    {
+                      "date": "01.12.2026",
+                      "refSalesAmount": 21240,
+                      "planSalesAmount": 23496
+                    }
+                  ]
+                },
+                {
+                  "id": "BRI-1122",
+                  "level": "Brick",
+                  "name": "Poloshirts",
+                  "metrics": {
+                    "refSalesAmount": 80000,
+                    "refCostOfSales": 48000,
+                    "planSalesAmount": 88000
+                  },
+                  "children": [],
+                  "monthlyValues": [
+                    {
+                      "date": "01.01.2026",
+                      "refSalesAmount": 4960,
+                      "planSalesAmount": 5456
+                    },
+                    {
+                      "date": "01.02.2026",
+                      "refSalesAmount": 5280,
+                      "planSalesAmount": 5808
+                    },
+                    {
+                      "date": "01.03.2026",
+                      "refSalesAmount": 4720,
+                      "planSalesAmount": 5192
+                    },
+                    {
+                      "date": "01.04.2026",
+                      "refSalesAmount": 4480,
+                      "planSalesAmount": 4840
+                    },
+                    {
+                      "date": "01.05.2026",
+                      "refSalesAmount": 5520,
+                      "planSalesAmount": 5984
+                    },
+                    {
+                      "date": "01.06.2026",
+                      "refSalesAmount": 5680,
+                      "planSalesAmount": 6248
+                    },
+                    {
+                      "date": "01.07.2026",
+                      "refSalesAmount": 5680,
+                      "planSalesAmount": 6248
+                    },
+                    {
+                      "date": "01.08.2026",
+                      "refSalesAmount": 6000,
+                      "planSalesAmount": 6688
+                    },
+                    {
+                      "date": "01.09.2026",
+                      "refSalesAmount": 6960,
+                      "planSalesAmount": 7656
+                    },
+                    {
+                      "date": "01.10.2026",
+                      "refSalesAmount": 7840,
+                      "planSalesAmount": 8624
+                    },
+                    {
+                      "date": "01.11.2026",
+                      "refSalesAmount": 8720,
+                      "planSalesAmount": 9504
+                    },
+                    {
+                      "date": "01.12.2026",
+                      "refSalesAmount": 14160,
+                      "planSalesAmount": 15664
+                    }
+                  ]
+                }
+              ],
+              "monthlyValues": [
+                {
+                  "date": "01.01.2026",
+                  "refSalesAmount": 12400,
+                  "planSalesAmount": 13640
+                },
+                {
+                  "date": "01.02.2026",
+                  "refSalesAmount": 13200,
+                  "planSalesAmount": 14520
+                },
+                {
+                  "date": "01.03.2026",
+                  "refSalesAmount": 11800,
+                  "planSalesAmount": 12980
+                },
+                {
+                  "date": "01.04.2026",
+                  "refSalesAmount": 11200,
+                  "planSalesAmount": 12100
+                },
+                {
+                  "date": "01.05.2026",
+                  "refSalesAmount": 13800,
+                  "planSalesAmount": 14960
+                },
+                {
+                  "date": "01.06.2026",
+                  "refSalesAmount": 14200,
+                  "planSalesAmount": 15620
+                },
+                {
+                  "date": "01.07.2026",
+                  "refSalesAmount": 14200,
+                  "planSalesAmount": 15620
+                },
+                {
+                  "date": "01.08.2026",
+                  "refSalesAmount": 15000,
+                  "planSalesAmount": 16720
+                },
+                {
+                  "date": "01.09.2026",
+                  "refSalesAmount": 17400,
+                  "planSalesAmount": 19140
+                },
+                {
+                  "date": "01.10.2026",
+                  "refSalesAmount": 19600,
+                  "planSalesAmount": 21560
+                },
+                {
+                  "date": "01.11.2026",
+                  "refSalesAmount": 21800,
+                  "planSalesAmount": 23760
+                },
+                {
+                  "date": "01.12.2026",
+                  "refSalesAmount": 35400,
+                  "planSalesAmount": 39160
+                }
+              ]
+            }
+          ],
+          "monthlyValues": [
+            {
+              "date": "01.01.2026",
+              "refSalesAmount": 31000,
+              "planSalesAmount": 34100
+            },
+            {
+              "date": "01.02.2026",
+              "refSalesAmount": 33000,
+              "planSalesAmount": 36300
+            },
+            {
+              "date": "01.03.2026",
+              "refSalesAmount": 29500,
+              "planSalesAmount": 32450
+            },
+            {
+              "date": "01.04.2026",
+              "refSalesAmount": 28000,
+              "planSalesAmount": 30250
+            },
+            {
+              "date": "01.05.2026",
+              "refSalesAmount": 34500,
+              "planSalesAmount": 37400
+            },
+            {
+              "date": "01.06.2026",
+              "refSalesAmount": 35500,
+              "planSalesAmount": 39050
+            },
+            {
+              "date": "01.07.2026",
+              "refSalesAmount": 35500,
+              "planSalesAmount": 39050
+            },
+            {
+              "date": "01.08.2026",
+              "refSalesAmount": 37500,
+              "planSalesAmount": 41800
+            },
+            {
+              "date": "01.09.2026",
+              "refSalesAmount": 43500,
+              "planSalesAmount": 47850
+            },
+            {
+              "date": "01.10.2026",
+              "refSalesAmount": 49000,
+              "planSalesAmount": 53900
+            },
+            {
+              "date": "01.11.2026",
+              "refSalesAmount": 54500,
+              "planSalesAmount": 59400
+            },
+            {
+              "date": "01.12.2026",
+              "refSalesAmount": 88500,
+              "planSalesAmount": 97900
+            }
+          ]
+        },
+        {
+          "id": "FAM-1002",
+          "level": "Family",
+          "name": "Damenbekleidung",
+          "metrics": {
+            "refSalesAmount": 500000,
+            "refCostOfSales": 315000,
+            "planSalesAmount": 550000
+          },
+          "children": [
+            {
+              "id": "CLA-1201",
+              "level": "Class",
+              "name": "Dresses",
+              "metrics": {
+                "refSalesAmount": 280000,
+                "refCostOfSales": 175000,
+                "planSalesAmount": 308000
+              },
+              "children": [
+                {
+                  "id": "BRI-1211",
+                  "level": "Brick",
+                  "name": "Casual Dresses",
+                  "metrics": {
+                    "refSalesAmount": 160000,
+                    "refCostOfSales": 100000,
+                    "planSalesAmount": 176000
+                  },
+                  "children": [],
+                  "monthlyValues": [
+                    {
+                      "date": "01.01.2026",
+                      "refSalesAmount": 9920,
+                      "planSalesAmount": 10912
+                    },
+                    {
+                      "date": "01.02.2026",
+                      "refSalesAmount": 10560,
+                      "planSalesAmount": 11616
+                    },
+                    {
+                      "date": "01.03.2026",
+                      "refSalesAmount": 9440,
+                      "planSalesAmount": 10384
+                    },
+                    {
+                      "date": "01.04.2026",
+                      "refSalesAmount": 8960,
+                      "planSalesAmount": 9680
+                    },
+                    {
+                      "date": "01.05.2026",
+                      "refSalesAmount": 11040,
+                      "planSalesAmount": 11968
+                    },
+                    {
+                      "date": "01.06.2026",
+                      "refSalesAmount": 11360,
+                      "planSalesAmount": 12496
+                    },
+                    {
+                      "date": "01.07.2026",
+                      "refSalesAmount": 11360,
+                      "planSalesAmount": 12496
+                    },
+                    {
+                      "date": "01.08.2026",
+                      "refSalesAmount": 12000,
+                      "planSalesAmount": 13376
+                    },
+                    {
+                      "date": "01.09.2026",
+                      "refSalesAmount": 13920,
+                      "planSalesAmount": 15312
+                    },
+                    {
+                      "date": "01.10.2026",
+                      "refSalesAmount": 15680,
+                      "planSalesAmount": 17248
+                    },
+                    {
+                      "date": "01.11.2026",
+                      "refSalesAmount": 17440,
+                      "planSalesAmount": 19008
+                    },
+                    {
+                      "date": "01.12.2026",
+                      "refSalesAmount": 28320,
+                      "planSalesAmount": 31328
+                    }
+                  ]
+                },
+                {
+                  "id": "BRI-1212",
+                  "level": "Brick",
+                  "name": "Business Dresses",
+                  "metrics": {
+                    "refSalesAmount": 120000,
+                    "refCostOfSales": 75000,
+                    "planSalesAmount": 132000
+                  },
+                  "children": [],
+                  "monthlyValues": [
+                    {
+                      "date": "01.01.2026",
+                      "refSalesAmount": 7440,
+                      "planSalesAmount": 8184
+                    },
+                    {
+                      "date": "01.02.2026",
+                      "refSalesAmount": 7920,
+                      "planSalesAmount": 8712
+                    },
+                    {
+                      "date": "01.03.2026",
+                      "refSalesAmount": 7080,
+                      "planSalesAmount": 7788
+                    },
+                    {
+                      "date": "01.04.2026",
+                      "refSalesAmount": 6720,
+                      "planSalesAmount": 7260
+                    },
+                    {
+                      "date": "01.05.2026",
+                      "refSalesAmount": 8280,
+                      "planSalesAmount": 8976
+                    },
+                    {
+                      "date": "01.06.2026",
+                      "refSalesAmount": 8520,
+                      "planSalesAmount": 9372
+                    },
+                    {
+                      "date": "01.07.2026",
+                      "refSalesAmount": 8520,
+                      "planSalesAmount": 9372
+                    },
+                    {
+                      "date": "01.08.2026",
+                      "refSalesAmount": 9000,
+                      "planSalesAmount": 10032
+                    },
+                    {
+                      "date": "01.09.2026",
+                      "refSalesAmount": 10440,
+                      "planSalesAmount": 11484
+                    },
+                    {
+                      "date": "01.10.2026",
+                      "refSalesAmount": 11760,
+                      "planSalesAmount": 12936
+                    },
+                    {
+                      "date": "01.11.2026",
+                      "refSalesAmount": 13080,
+                      "planSalesAmount": 14256
+                    },
+                    {
+                      "date": "01.12.2026",
+                      "refSalesAmount": 21240,
+                      "planSalesAmount": 23496
+                    }
+                  ]
+                }
+              ],
+              "monthlyValues": [
+                {
+                  "date": "01.01.2026",
+                  "refSalesAmount": 17360,
+                  "planSalesAmount": 19096
+                },
+                {
+                  "date": "01.02.2026",
+                  "refSalesAmount": 18480,
+                  "planSalesAmount": 20328
+                },
+                {
+                  "date": "01.03.2026",
+                  "refSalesAmount": 16520,
+                  "planSalesAmount": 18172
+                },
+                {
+                  "date": "01.04.2026",
+                  "refSalesAmount": 15680,
+                  "planSalesAmount": 16940
+                },
+                {
+                  "date": "01.05.2026",
+                  "refSalesAmount": 19320,
+                  "planSalesAmount": 20944
+                },
+                {
+                  "date": "01.06.2026",
+                  "refSalesAmount": 19880,
+                  "planSalesAmount": 21868
+                },
+                {
+                  "date": "01.07.2026",
+                  "refSalesAmount": 19880,
+                  "planSalesAmount": 21868
+                },
+                {
+                  "date": "01.08.2026",
+                  "refSalesAmount": 21000,
+                  "planSalesAmount": 23408
+                },
+                {
+                  "date": "01.09.2026",
+                  "refSalesAmount": 24360,
+                  "planSalesAmount": 26796
+                },
+                {
+                  "date": "01.10.2026",
+                  "refSalesAmount": 27440,
+                  "planSalesAmount": 30184
+                },
+                {
+                  "date": "01.11.2026",
+                  "refSalesAmount": 30520,
+                  "planSalesAmount": 33264
+                },
+                {
+                  "date": "01.12.2026",
+                  "refSalesAmount": 49560,
+                  "planSalesAmount": 54824
+                }
+              ]
+            },
+            {
+              "id": "CLA-1202",
+              "level": "Class",
+              "name": "Blusen",
+              "metrics": {
+                "refSalesAmount": 220000,
+                "refCostOfSales": 140000,
+                "planSalesAmount": 242000
+              },
+              "children": [
+                {
+                  "id": "BRI-1221",
+                  "level": "Brick",
+                  "name": "Basic Blusen",
+                  "metrics": {
+                    "refSalesAmount": 130000,
+                    "refCostOfSales": 82000,
+                    "planSalesAmount": 143000
+                  },
+                  "children": [],
+                  "monthlyValues": [
+                    {
+                      "date": "01.01.2026",
+                      "refSalesAmount": 8060,
+                      "planSalesAmount": 8866
+                    },
+                    {
+                      "date": "01.02.2026",
+                      "refSalesAmount": 8580,
+                      "planSalesAmount": 9438
+                    },
+                    {
+                      "date": "01.03.2026",
+                      "refSalesAmount": 7670,
+                      "planSalesAmount": 8437
+                    },
+                    {
+                      "date": "01.04.2026",
+                      "refSalesAmount": 7280,
+                      "planSalesAmount": 7865
+                    },
+                    {
+                      "date": "01.05.2026",
+                      "refSalesAmount": 8970,
+                      "planSalesAmount": 9724
+                    },
+                    {
+                      "date": "01.06.2026",
+                      "refSalesAmount": 9230,
+                      "planSalesAmount": 10153
+                    },
+                    {
+                      "date": "01.07.2026",
+                      "refSalesAmount": 9230,
+                      "planSalesAmount": 10153
+                    },
+                    {
+                      "date": "01.08.2026",
+                      "refSalesAmount": 9750,
+                      "planSalesAmount": 10868
+                    },
+                    {
+                      "date": "01.09.2026",
+                      "refSalesAmount": 11310,
+                      "planSalesAmount": 12441
+                    },
+                    {
+                      "date": "01.10.2026",
+                      "refSalesAmount": 12740,
+                      "planSalesAmount": 14014
+                    },
+                    {
+                      "date": "01.11.2026",
+                      "refSalesAmount": 14170,
+                      "planSalesAmount": 15444
+                    },
+                    {
+                      "date": "01.12.2026",
+                      "refSalesAmount": 23010,
+                      "planSalesAmount": 25454
+                    }
+                  ]
+                },
+                {
+                  "id": "BRI-1222",
+                  "level": "Brick",
+                  "name": "Premium Blusen",
+                  "metrics": {
+                    "refSalesAmount": 90000,
+                    "refCostOfSales": 58000,
+                    "planSalesAmount": 99000
+                  },
+                  "children": [],
+                  "monthlyValues": [
+                    {
+                      "date": "01.01.2026",
+                      "refSalesAmount": 5580,
+                      "planSalesAmount": 6138
+                    },
+                    {
+                      "date": "01.02.2026",
+                      "refSalesAmount": 5940,
+                      "planSalesAmount": 6534
+                    },
+                    {
+                      "date": "01.03.2026",
+                      "refSalesAmount": 5310,
+                      "planSalesAmount": 5841
+                    },
+                    {
+                      "date": "01.04.2026",
+                      "refSalesAmount": 5040,
+                      "planSalesAmount": 5445
+                    },
+                    {
+                      "date": "01.05.2026",
+                      "refSalesAmount": 6210,
+                      "planSalesAmount": 6732
+                    },
+                    {
+                      "date": "01.06.2026",
+                      "refSalesAmount": 6390,
+                      "planSalesAmount": 7029
+                    },
+                    {
+                      "date": "01.07.2026",
+                      "refSalesAmount": 6390,
+                      "planSalesAmount": 7029
+                    },
+                    {
+                      "date": "01.08.2026",
+                      "refSalesAmount": 6750,
+                      "planSalesAmount": 7524
+                    },
+                    {
+                      "date": "01.09.2026",
+                      "refSalesAmount": 7830,
+                      "planSalesAmount": 8613
+                    },
+                    {
+                      "date": "01.10.2026",
+                      "refSalesAmount": 8820,
+                      "planSalesAmount": 9702
+                    },
+                    {
+                      "date": "01.11.2026",
+                      "refSalesAmount": 9810,
+                      "planSalesAmount": 10692
+                    },
+                    {
+                      "date": "01.12.2026",
+                      "refSalesAmount": 15930,
+                      "planSalesAmount": 17622
+                    }
+                  ]
+                }
+              ],
+              "monthlyValues": [
+                {
+                  "date": "01.01.2026",
+                  "refSalesAmount": 13640,
+                  "planSalesAmount": 15004
+                },
+                {
+                  "date": "01.02.2026",
+                  "refSalesAmount": 14520,
+                  "planSalesAmount": 15972
+                },
+                {
+                  "date": "01.03.2026",
+                  "refSalesAmount": 12980,
+                  "planSalesAmount": 14278
+                },
+                {
+                  "date": "01.04.2026",
+                  "refSalesAmount": 12320,
+                  "planSalesAmount": 13310
+                },
+                {
+                  "date": "01.05.2026",
+                  "refSalesAmount": 15180,
+                  "planSalesAmount": 16456
+                },
+                {
+                  "date": "01.06.2026",
+                  "refSalesAmount": 15620,
+                  "planSalesAmount": 17182
+                },
+                {
+                  "date": "01.07.2026",
+                  "refSalesAmount": 15620,
+                  "planSalesAmount": 17182
+                },
+                {
+                  "date": "01.08.2026",
+                  "refSalesAmount": 16500,
+                  "planSalesAmount": 18392
+                },
+                {
+                  "date": "01.09.2026",
+                  "refSalesAmount": 19140,
+                  "planSalesAmount": 21054
+                },
+                {
+                  "date": "01.10.2026",
+                  "refSalesAmount": 21560,
+                  "planSalesAmount": 23716
+                },
+                {
+                  "date": "01.11.2026",
+                  "refSalesAmount": 23980,
+                  "planSalesAmount": 26136
+                },
+                {
+                  "date": "01.12.2026",
+                  "refSalesAmount": 38940,
+                  "planSalesAmount": 43076
+                }
+              ]
+            }
+          ],
+          "monthlyValues": [
+            {
+              "date": "01.01.2026",
+              "refSalesAmount": 31000,
+              "planSalesAmount": 34100
+            },
+            {
+              "date": "01.02.2026",
+              "refSalesAmount": 33000,
+              "planSalesAmount": 36300
+            },
+            {
+              "date": "01.03.2026",
+              "refSalesAmount": 29500,
+              "planSalesAmount": 32450
+            },
+            {
+              "date": "01.04.2026",
+              "refSalesAmount": 28000,
+              "planSalesAmount": 30250
+            },
+            {
+              "date": "01.05.2026",
+              "refSalesAmount": 34500,
+              "planSalesAmount": 37400
+            },
+            {
+              "date": "01.06.2026",
+              "refSalesAmount": 35500,
+              "planSalesAmount": 39050
+            },
+            {
+              "date": "01.07.2026",
+              "refSalesAmount": 35500,
+              "planSalesAmount": 39050
+            },
+            {
+              "date": "01.08.2026",
+              "refSalesAmount": 37500,
+              "planSalesAmount": 41800
+            },
+            {
+              "date": "01.09.2026",
+              "refSalesAmount": 43500,
+              "planSalesAmount": 47850
+            },
+            {
+              "date": "01.10.2026",
+              "refSalesAmount": 49000,
+              "planSalesAmount": 53900
+            },
+            {
+              "date": "01.11.2026",
+              "refSalesAmount": 54500,
+              "planSalesAmount": 59400
+            },
+            {
+              "date": "01.12.2026",
+              "refSalesAmount": 88500,
+              "planSalesAmount": 97900
+            }
+          ]
+        }
+      ],
+      "monthlyValues": [
+        {
+          "date": "01.01.2026",
+          "refSalesAmount": 62000,
+          "planSalesAmount": 68200
+        },
+        {
+          "date": "01.02.2026",
+          "refSalesAmount": 66000,
+          "planSalesAmount": 72600
+        },
+        {
+          "date": "01.03.2026",
+          "refSalesAmount": 59000,
+          "planSalesAmount": 64900
+        },
+        {
+          "date": "01.04.2026",
+          "refSalesAmount": 56000,
+          "planSalesAmount": 60500
+        },
+        {
+          "date": "01.05.2026",
+          "refSalesAmount": 69000,
+          "planSalesAmount": 74800
+        },
+        {
+          "date": "01.06.2026",
+          "refSalesAmount": 71000,
+          "planSalesAmount": 78100
+        },
+        {
+          "date": "01.07.2026",
+          "refSalesAmount": 71000,
+          "planSalesAmount": 78100
+        },
+        {
+          "date": "01.08.2026",
+          "refSalesAmount": 75000,
+          "planSalesAmount": 83600
+        },
+        {
+          "date": "01.09.2026",
+          "refSalesAmount": 87000,
+          "planSalesAmount": 95700
+        },
+        {
+          "date": "01.10.2026",
+          "refSalesAmount": 98000,
+          "planSalesAmount": 107800
+        },
+        {
+          "date": "01.11.2026",
+          "refSalesAmount": 109000,
+          "planSalesAmount": 118800
+        },
+        {
+          "date": "01.12.2026",
+          "refSalesAmount": 177000,
+          "planSalesAmount": 195800
+        }
+      ]
+    },
+    {
+      "id": "SEG-2000",
+      "name": "Schuhe",
+      "level": "Segment",
+      "metrics": {
+        "refSalesAmount": 360000,
+        "planSalesAmount": 360000
+      },
+      "monthlyValues": [
+        {
+          "date": "01.01.2026",
+          "refSalesAmount": 30000,
+          "planSalesAmount": 30000
+        },
+        {
+          "date": "01.02.2026",
+          "refSalesAmount": 30000,
+          "planSalesAmount": 30000
+        },
+        {
+          "date": "01.03.2026",
+          "refSalesAmount": 30000,
+          "planSalesAmount": 30000
+        },
+        {
+          "date": "01.04.2026",
+          "refSalesAmount": 30000,
+          "planSalesAmount": 30000
+        },
+        {
+          "date": "01.05.2026",
+          "refSalesAmount": 30000,
+          "planSalesAmount": 30000
+        },
+        {
+          "date": "01.06.2026",
+          "refSalesAmount": 30000,
+          "planSalesAmount": 30000
+        },
+        {
+          "date": "01.07.2026",
+          "refSalesAmount": 30000,
+          "planSalesAmount": 30000
+        },
+        {
+          "date": "01.08.2026",
+          "refSalesAmount": 30000,
+          "planSalesAmount": 30000
+        },
+        {
+          "date": "01.09.2026",
+          "refSalesAmount": 30000,
+          "planSalesAmount": 30000
+        },
+        {
+          "date": "01.10.2026",
+          "refSalesAmount": 30000,
+          "planSalesAmount": 30000
+        },
+        {
+          "date": "01.11.2026",
+          "refSalesAmount": 30000,
+          "planSalesAmount": 30000
+        },
+        {
+          "date": "01.12.2026",
+          "refSalesAmount": 30000,
+          "planSalesAmount": 30000
+        }
+      ],
+      "children": [
+        {
+          "id": "F_NEW1",
+          "name": "New Family 1",
+          "level": "Family",
+          "metrics": {
+            "refSalesAmount": 120000,
+            "planSalesAmount": 120000
+          },
+          "monthlyValues": [
+            {
+              "date": "01.01.2026",
+              "refSalesAmount": 10000,
+              "planSalesAmount": 10000
+            },
+            {
+              "date": "01.02.2026",
+              "refSalesAmount": 10000,
+              "planSalesAmount": 10000
+            },
+            {
+              "date": "01.03.2026",
+              "refSalesAmount": 10000,
+              "planSalesAmount": 10000
+            },
+            {
+              "date": "01.04.2026",
+              "refSalesAmount": 10000,
+              "planSalesAmount": 10000
+            },
+            {
+              "date": "01.05.2026",
+              "refSalesAmount": 10000,
+              "planSalesAmount": 10000
+            },
+            {
+              "date": "01.06.2026",
+              "refSalesAmount": 10000,
+              "planSalesAmount": 10000
+            },
+            {
+              "date": "01.07.2026",
+              "refSalesAmount": 10000,
+              "planSalesAmount": 10000
+            },
+            {
+              "date": "01.08.2026",
+              "refSalesAmount": 10000,
+              "planSalesAmount": 10000
+            },
+            {
+              "date": "01.09.2026",
+              "refSalesAmount": 10000,
+              "planSalesAmount": 10000
+            },
+            {
+              "date": "01.10.2026",
+              "refSalesAmount": 10000,
+              "planSalesAmount": 10000
+            },
+            {
+              "date": "01.11.2026",
+              "refSalesAmount": 10000,
+              "planSalesAmount": 10000
+            },
+            {
+              "date": "01.12.2026",
+              "refSalesAmount": 10000,
+              "planSalesAmount": 10000
+            }
+          ],
+          "children": [
+            {
+              "id": "C_NEW1",
+              "name": "New Class 1",
+              "level": "Class",
+              "metrics": {
+                "refSalesAmount": 120000,
+                "planSalesAmount": 120000
+              },
+              "monthlyValues": [
+                {
+                  "date": "01.01.2026",
+                  "refSalesAmount": 10000,
+                  "planSalesAmount": 10000
+                },
+                {
+                  "date": "01.02.2026",
+                  "refSalesAmount": 10000,
+                  "planSalesAmount": 10000
+                },
+                {
+                  "date": "01.03.2026",
+                  "refSalesAmount": 10000,
+                  "planSalesAmount": 10000
+                },
+                {
+                  "date": "01.04.2026",
+                  "refSalesAmount": 10000,
+                  "planSalesAmount": 10000
+                },
+                {
+                  "date": "01.05.2026",
+                  "refSalesAmount": 10000,
+                  "planSalesAmount": 10000
+                },
+                {
+                  "date": "01.06.2026",
+                  "refSalesAmount": 10000,
+                  "planSalesAmount": 10000
+                },
+                {
+                  "date": "01.07.2026",
+                  "refSalesAmount": 10000,
+                  "planSalesAmount": 10000
+                },
+                {
+                  "date": "01.08.2026",
+                  "refSalesAmount": 10000,
+                  "planSalesAmount": 10000
+                },
+                {
+                  "date": "01.09.2026",
+                  "refSalesAmount": 10000,
+                  "planSalesAmount": 10000
+                },
+                {
+                  "date": "01.10.2026",
+                  "refSalesAmount": 10000,
+                  "planSalesAmount": 10000
+                },
+                {
+                  "date": "01.11.2026",
+                  "refSalesAmount": 10000,
+                  "planSalesAmount": 10000
+                },
+                {
+                  "date": "01.12.2026",
+                  "refSalesAmount": 10000,
+                  "planSalesAmount": 10000
+                }
+              ],
+              "children": [
+                {
+                  "id": "B_NEW1",
+                  "name": "New Brick 1",
+                  "level": "Brick",
+                  "metrics": {
+                    "refSalesAmount": 120000,
+                    "planSalesAmount": 120000
+                  },
+                  "monthlyValues": [
+                    {
+                      "date": "01.01.2026",
+                      "refSalesAmount": 10000,
+                      "planSalesAmount": 10000
+                    },
+                    {
+                      "date": "01.02.2026",
+                      "refSalesAmount": 10000,
+                      "planSalesAmount": 10000
+                    },
+                    {
+                      "date": "01.03.2026",
+                      "refSalesAmount": 10000,
+                      "planSalesAmount": 10000
+                    },
+                    {
+                      "date": "01.04.2026",
+                      "refSalesAmount": 10000,
+                      "planSalesAmount": 10000
+                    },
+                    {
+                      "date": "01.05.2026",
+                      "refSalesAmount": 10000,
+                      "planSalesAmount": 10000
+                    },
+                    {
+                      "date": "01.06.2026",
+                      "refSalesAmount": 10000,
+                      "planSalesAmount": 10000
+                    },
+                    {
+                      "date": "01.07.2026",
+                      "refSalesAmount": 10000,
+                      "planSalesAmount": 10000
+                    },
+                    {
+                      "date": "01.08.2026",
+                      "refSalesAmount": 10000,
+                      "planSalesAmount": 10000
+                    },
+                    {
+                      "date": "01.09.2026",
+                      "refSalesAmount": 10000,
+                      "planSalesAmount": 10000
+                    },
+                    {
+                      "date": "01.10.2026",
+                      "refSalesAmount": 10000,
+                      "planSalesAmount": 10000
+                    },
+                    {
+                      "date": "01.11.2026",
+                      "refSalesAmount": 10000,
+                      "planSalesAmount": 10000
+                    },
+                    {
+                      "date": "01.12.2026",
+                      "refSalesAmount": 10000,
+                      "planSalesAmount": 10000
+                    }
+                  ],
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "F_NEW2",
+          "name": "New Family 2",
+          "level": "Family",
+          "metrics": {
+            "refSalesAmount": 240000,
+            "planSalesAmount": 240000
+          },
+          "monthlyValues": [
+            {
+              "date": "01.01.2026",
+              "refSalesAmount": 20000,
+              "planSalesAmount": 20000
+            },
+            {
+              "date": "01.02.2026",
+              "refSalesAmount": 20000,
+              "planSalesAmount": 20000
+            },
+            {
+              "date": "01.03.2026",
+              "refSalesAmount": 20000,
+              "planSalesAmount": 20000
+            },
+            {
+              "date": "01.04.2026",
+              "refSalesAmount": 20000,
+              "planSalesAmount": 20000
+            },
+            {
+              "date": "01.05.2026",
+              "refSalesAmount": 20000,
+              "planSalesAmount": 20000
+            },
+            {
+              "date": "01.06.2026",
+              "refSalesAmount": 20000,
+              "planSalesAmount": 20000
+            },
+            {
+              "date": "01.07.2026",
+              "refSalesAmount": 20000,
+              "planSalesAmount": 20000
+            },
+            {
+              "date": "01.08.2026",
+              "refSalesAmount": 20000,
+              "planSalesAmount": 20000
+            },
+            {
+              "date": "01.09.2026",
+              "refSalesAmount": 20000,
+              "planSalesAmount": 20000
+            },
+            {
+              "date": "01.10.2026",
+              "refSalesAmount": 20000,
+              "planSalesAmount": 20000
+            },
+            {
+              "date": "01.11.2026",
+              "refSalesAmount": 20000,
+              "planSalesAmount": 20000
+            },
+            {
+              "date": "01.12.2026",
+              "refSalesAmount": 20000,
+              "planSalesAmount": 20000
+            }
+          ],
+          "children": [
+            {
+              "id": "C_NEW2",
+              "name": "New Class 2",
+              "level": "Class",
+              "metrics": {
+                "refSalesAmount": 240000,
+                "planSalesAmount": 240000
+              },
+              "monthlyValues": [
+                {
+                  "date": "01.01.2026",
+                  "refSalesAmount": 20000,
+                  "planSalesAmount": 20000
+                },
+                {
+                  "date": "01.02.2026",
+                  "refSalesAmount": 20000,
+                  "planSalesAmount": 20000
+                },
+                {
+                  "date": "01.03.2026",
+                  "refSalesAmount": 20000,
+                  "planSalesAmount": 20000
+                },
+                {
+                  "date": "01.04.2026",
+                  "refSalesAmount": 20000,
+                  "planSalesAmount": 20000
+                },
+                {
+                  "date": "01.05.2026",
+                  "refSalesAmount": 20000,
+                  "planSalesAmount": 20000
+                },
+                {
+                  "date": "01.06.2026",
+                  "refSalesAmount": 20000,
+                  "planSalesAmount": 20000
+                },
+                {
+                  "date": "01.07.2026",
+                  "refSalesAmount": 20000,
+                  "planSalesAmount": 20000
+                },
+                {
+                  "date": "01.08.2026",
+                  "refSalesAmount": 20000,
+                  "planSalesAmount": 20000
+                },
+                {
+                  "date": "01.09.2026",
+                  "refSalesAmount": 20000,
+                  "planSalesAmount": 20000
+                },
+                {
+                  "date": "01.10.2026",
+                  "refSalesAmount": 20000,
+                  "planSalesAmount": 20000
+                },
+                {
+                  "date": "01.11.2026",
+                  "refSalesAmount": 20000,
+                  "planSalesAmount": 20000
+                },
+                {
+                  "date": "01.12.2026",
+                  "refSalesAmount": 20000,
+                  "planSalesAmount": 20000
+                }
+              ],
+              "children": [
+                {
+                  "id": "B_NEW2",
+                  "name": "New Brick 2",
+                  "level": "Brick",
+                  "metrics": {
+                    "refSalesAmount": 240000,
+                    "planSalesAmount": 240000
+                  },
+                  "monthlyValues": [
+                    {
+                      "date": "01.01.2026",
+                      "refSalesAmount": 20000,
+                      "planSalesAmount": 20000
+                    },
+                    {
+                      "date": "01.02.2026",
+                      "refSalesAmount": 20000,
+                      "planSalesAmount": 20000
+                    },
+                    {
+                      "date": "01.03.2026",
+                      "refSalesAmount": 20000,
+                      "planSalesAmount": 20000
+                    },
+                    {
+                      "date": "01.04.2026",
+                      "refSalesAmount": 20000,
+                      "planSalesAmount": 20000
+                    },
+                    {
+                      "date": "01.05.2026",
+                      "refSalesAmount": 20000,
+                      "planSalesAmount": 20000
+                    },
+                    {
+                      "date": "01.06.2026",
+                      "refSalesAmount": 20000,
+                      "planSalesAmount": 20000
+                    },
+                    {
+                      "date": "01.07.2026",
+                      "refSalesAmount": 20000,
+                      "planSalesAmount": 20000
+                    },
+                    {
+                      "date": "01.08.2026",
+                      "refSalesAmount": 20000,
+                      "planSalesAmount": 20000
+                    },
+                    {
+                      "date": "01.09.2026",
+                      "refSalesAmount": 20000,
+                      "planSalesAmount": 20000
+                    },
+                    {
+                      "date": "01.10.2026",
+                      "refSalesAmount": 20000,
+                      "planSalesAmount": 20000
+                    },
+                    {
+                      "date": "01.11.2026",
+                      "refSalesAmount": 20000,
+                      "planSalesAmount": 20000
+                    },
+                    {
+                      "date": "01.12.2026",
+                      "refSalesAmount": 20000,
+                      "planSalesAmount": 20000
+                    }
+                  ],
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

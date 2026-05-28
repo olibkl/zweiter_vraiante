@@ -1,0 +1,74 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependency directories
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+build/
+.next/
+.vercel/
+.vercel_build_output/
+.netlify/
+out/
+.svelte-kit/
+
+# Vite/Tooling caches
+.vite/
+.vite_cache/
+.parcel-cache/
+.cache/
+node_modules/.tmp/
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.local
+
+# Editor directories and files
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test output
+coverage/
+.nyc_output/
+coverage-final.json
+
+# Misc caches and debug
+.pnpm-store/
+.pnp.*
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Platform / service files
+.firebase/
+firebase-debug.log
+
+# Local tool settings (keep examples/configs out of source)
+.claude/settings.local.json
