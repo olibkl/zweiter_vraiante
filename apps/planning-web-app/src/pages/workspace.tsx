@@ -26,8 +26,6 @@ import {
 import {
   ArrowDownToLine,
   CircleHelp,
-  FileText,
-  ListTree,
   Lock,
   Maximize2,
   Minimize2,
@@ -56,6 +54,7 @@ import {
   DEFAULT_ROUNDING_MODE,
   roundNonNegative,
 } from "@/lib/rounding";
+import { fetchFxRate } from "@/lib/fx-rate";
 
 const formatNumber = (value: number, precision = 2) => {
   return new Intl.NumberFormat("de-DE", {
@@ -185,6 +184,9 @@ const formatLevelLabel = (level: PlanningNode["level"]) => {
 
 const levelBadgeClassName = (_level: PlanningNode["level"]) =>
   "border-slate-300 bg-slate-50 text-slate-700";
+const fastTabHeaderClassName =
+  "flex h-12 w-full items-center justify-between border-b bg-muted/20 px-4 py-0 text-left text-sm font-semibold uppercase tracking-wide";
+const fastTabChevronClassName = "h-4 w-4 shrink-0 text-muted-foreground";
 
 const InfoFieldLabel = ({
   label,
@@ -365,16 +367,37 @@ export default function Workspace() {
       `Vergleichsdaten aus ${obj.document.comparisonYear} wurden importiert.`,
     );
   };
-  const handleApplyCurrencyConversion = () => {
-    if (!planId) return;
-    const normalized = conversionFactorInput.replace(",", ".").trim();
-    const factor = Number(normalized);
+  const handleApplyCurrencyConversion = async () => {
+    if (!planId || !obj) return;
+    const sourceCurrency = (obj.document.currencyCode ?? "EUR") as CurrencyCode;
+    const targetCurrency = currencyCode;
+    if (sourceCurrency === targetCurrency) {
+      toast.message("Quell- und Zielwährung sind identisch.");
+      return;
+    }
+
+    let factor = 0;
+    try {
+      factor = await fetchFxRate(sourceCurrency, targetCurrency);
+      setConversionFactorInput(
+        new Intl.NumberFormat("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 6,
+        }).format(factor),
+      );
+    } catch {
+      toast.error("Live-Wechselkurs konnte nicht geladen werden.");
+      return;
+    }
+
     const result = convertPlanCurrency(planId, currencyCode, factor);
     if (!result.ok) {
       toast.error(result.error.message);
       return;
     }
-    toast.success(`Planwerte wurden nach ${currencyCode} umgerechnet.`);
+    toast.success(
+      `Planwerte wurden von ${sourceCurrency} nach ${targetCurrency} umgerechnet.`,
+    );
   };
   const handleFullscreenToggle = async () => {
     try {
@@ -483,7 +506,9 @@ export default function Workspace() {
     {},
   );
   const [inputErrors, setInputErrors] = useState<Record<string, string>>({});
-  const [activeTab, setActiveTab] = useState("planning");
+  const [showHeaderFastTab, setShowHeaderFastTab] = useState(true);
+  const [showPositionsFastTab, setShowPositionsFastTab] = useState(true);
+  const [showDetailFastTab, setShowDetailFastTab] = useState(false);
   const [distributionType, setDistributionType] =
     useState<PlanningDistributionType>("PlanValues");
   const [isMonthlyViewActive, setIsMonthlyViewActive] = useState(false);
@@ -493,7 +518,6 @@ export default function Workspace() {
     string | null
   >(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [isLeftNavExpanded, setIsLeftNavExpanded] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showHelpPanel, setShowHelpPanel] = useState(false);
   const [changeLog, setChangeLog] = useState<ChangeLogEntry[]>([]);
@@ -528,7 +552,7 @@ export default function Workspace() {
       setTotalShareDrafts({});
       setTotalPlanDrafts({});
       setInputErrors({});
-      setActiveTab("planning");
+      setShowPositionsFastTab(true);
       setDistributionType(obj.document.runtime?.distributionType ?? "PlanValues");
       setIsMonthlyViewActive(false);
       setSelectedMonthlyNodeId(null);
@@ -1853,67 +1877,67 @@ export default function Workspace() {
         >
           {!isMonthlyViewActive && (
             <div className="overflow-y-auto overflow-x-hidden transition-all duration-300 ease-out translate-x-0 opacity-100">
-              {activeTab === "planning" ? (
-                <div className="flex items-start gap-4">
-                  <aside className={`shrink-0 rounded-lg border bg-card transition-all ${isLeftNavExpanded ? "w-60" : "w-16"}`}>
-                    <div className="flex items-center justify-between border-b bg-muted/10 p-2">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        {isLeftNavExpanded ? "Navigation" : "Nav"}
+              <div className="space-y-4">
+                <section className="rounded-lg border bg-card">
+                  <button
+                    type="button"
+                    className={fastTabHeaderClassName}
+                    onClick={() => setShowHeaderFastTab((current) => !current)}
+                    aria-expanded={showHeaderFastTab}
+                  >
+                    <span>Kopfinformationen</span>
+                    {showHeaderFastTab ? (
+                      <ChevronDown className={fastTabChevronClassName} />
+                    ) : (
+                      <ChevronRight className={fastTabChevronClassName} />
+                    )}
+                  </button>
+                  {showHeaderFastTab ? (
+                    <div className="grid gap-4 p-4 md:grid-cols-3">
+                      <div>
+                        <p className="text-xs uppercase text-muted-foreground">Plan-ID</p>
+                        <p className="font-mono text-sm">{obj.document.planId}</p>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2 text-xs"
-                        onClick={() => setIsLeftNavExpanded((current) => !current)}
-                      >
-                        {isLeftNavExpanded ? "<<" : ">>"}
-                      </Button>
+                      <div>
+                        <p className="text-xs uppercase text-muted-foreground">Plantyp</p>
+                        <p className="text-sm">{obj.document.planningType}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase text-muted-foreground">Status</p>
+                        <p className="text-sm">{obj.document.status === "Approved" ? "Freigegeben" : obj.document.status === "InReview" ? "In Prüfung" : "Entwurf"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase text-muted-foreground">Zuletzt bearbeitet</p>
+                        <p className="text-sm">{formatDate(obj.document.lastModified)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase text-muted-foreground">Geschäftsjahr</p>
+                        <p className="text-sm">{obj.document.fiscalYear ?? "-"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase text-muted-foreground">Vergleichsjahr</p>
+                        <p className="text-sm">{obj.document.comparisonYear ?? "-"}</p>
+                      </div>
                     </div>
-                    <div className="space-y-1 p-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start gap-2"
-                        onClick={() => setActiveTab("planning")}
-                      >
-                        <ListTree className="h-4 w-4" />
-                        {isLeftNavExpanded ? "Listenansicht" : null}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start gap-2"
-                        onClick={() => setActiveTab("details")}
-                      >
-                        <FileText className="h-4 w-4" />
-                        {isLeftNavExpanded ? "Detailansicht" : null}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start gap-2"
-                        onClick={expandAllNodes}
-                      >
-                        <span className="inline-flex h-4 w-4 items-center justify-center text-xs font-semibold">+</span>
-                        {isLeftNavExpanded ? "Alle aufklappen" : null}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start gap-2"
-                        onClick={collapseAllNodes}
-                      >
-                        <span className="inline-flex h-4 w-4 items-center justify-center text-xs font-semibold">-</span>
-                        {isLeftNavExpanded ? "Alle einklappen" : null}
-                      </Button>
-                    </div>
-                  </aside>
-                  <div className="min-w-0 flex-1 overflow-hidden rounded-lg border bg-card">
+                  ) : null}
+                </section>
+                <section className="rounded-lg border bg-card">
+                  <button
+                    type="button"
+                    className={fastTabHeaderClassName}
+                    onClick={() => setShowPositionsFastTab((current) => !current)}
+                    aria-expanded={showPositionsFastTab}
+                  >
+                    <span>Positionen</span>
+                    {showPositionsFastTab ? (
+                      <ChevronDown className={fastTabChevronClassName} />
+                    ) : (
+                      <ChevronRight className={fastTabChevronClassName} />
+                    )}
+                  </button>
+                  {showPositionsFastTab ? (
+                  <div className="flex items-start gap-4 p-4">
+                    <div className="min-w-0 flex-1 overflow-hidden rounded-lg border bg-card">
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/20 px-4 py-3">
                       <div className="text-sm">
                         <span className="font-medium">Planungslogik</span>
@@ -2001,13 +2025,10 @@ export default function Workspace() {
 	                      <select
 	                        className="h-7 rounded border border-slate-300 bg-background px-2"
 	                        value={currencyCode}
-	                        onChange={(event) => {
-	                          const nextCurrency = event.target.value as CurrencyCode;
-	                          setCurrencyCode(nextCurrency);
-	                          if (planId) {
-	                            updatePlanningSettings(planId, { currencyCode: nextCurrency });
-	                          }
-	                        }}
+                        onChange={(event) => {
+                          const nextCurrency = event.target.value as CurrencyCode;
+                          setCurrencyCode(nextCurrency);
+                        }}
 	                      >
 	                        {CURRENCY_OPTIONS.map((currency) => (
 	                          <option key={currency} value={currency}>
@@ -2221,12 +2242,28 @@ export default function Workspace() {
                       </TableBody>
                     </Table>
                   </div>
-                  <aside className="sticky top-3 hidden w-[340px] shrink-0 self-start xl:block">
-                    {renderNodeDetailsPanel()}
-                  </aside>
-                </div>
-              ) : (
-                <div className="flex w-fit max-w-full flex-col gap-4">
+                    <aside className="sticky top-3 hidden w-[340px] shrink-0 self-start xl:block">
+                      {renderNodeDetailsPanel()}
+                    </aside>
+                  </div>
+                ) : null}
+                </section>
+                <section className="rounded-lg border bg-card">
+                  <button
+                    type="button"
+                    className={fastTabHeaderClassName}
+                    onClick={() => setShowDetailFastTab((current) => !current)}
+                    aria-expanded={showDetailFastTab}
+                  >
+                    <span>Detailansicht</span>
+                    {showDetailFastTab ? (
+                      <ChevronDown className={fastTabChevronClassName} />
+                    ) : (
+                      <ChevronRight className={fastTabChevronClassName} />
+                    )}
+                  </button>
+                {showDetailFastTab ? (
+                <div className="flex w-fit max-w-full flex-col gap-4 p-4">
                   <div className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
                     <Table containerClassName="w-fit" className="w-auto">
                     <TableBody>
@@ -2451,7 +2488,9 @@ export default function Workspace() {
                     </div>
                   )}
                 </div>
-              )}
+              ) : null}
+                </section>
+              </div>
             </div>
           )}
 
