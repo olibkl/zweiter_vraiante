@@ -11,8 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowUpDown, Copy, Filter, Plus, Search } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowRight, ArrowUpDown, Filter, Plus, Search } from "lucide-react";
 import type { PlanningObject } from "@/types/planning";
 
 function formatDate(dateString: string): string {
@@ -37,7 +36,6 @@ const getStatusLabel = (status: PlanningObject["document"]["status"]) => {
 export default function Overview() {
   const navigate = useNavigate();
   const allPlans = usePlanStore((state) => state.allPlans);
-  const clonePlanFromBase = usePlanStore((state) => state.clonePlanFromBase);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     Array<PlanningObject["document"]["status"]>
@@ -199,37 +197,37 @@ export default function Overview() {
         </DropdownMenu>
       </div>
 
-      <div className="overflow-hidden rounded-xl border">
+      <div className="overflow-hidden rounded-xl border border-border/90">
         <table className="w-full text-left">
-          <thead className="bg-muted/40">
+          <thead className="bg-muted/45">
             <tr className="border-b">
-              <th className="px-4 py-3 text-sm font-semibold">Plan</th>
-              <th className="px-4 py-3 text-sm font-semibold">Plan-ID</th>
-              <th className="px-4 py-3 text-sm font-semibold">Plantyp</th>
-              <th className="px-4 py-3 text-sm font-semibold">Zuletzt bearbeitet</th>
-              <th className="px-4 py-3 text-sm font-semibold">Status</th>
-              <th className="w-20 px-4 py-3" />
+              <th className="px-6 py-3 text-sm font-semibold">Plan</th>
+              <th className="px-6 py-3 text-sm font-semibold">Plan-ID</th>
+              <th className="px-6 py-3 text-sm font-semibold">Plantyp</th>
+              <th className="px-6 py-3 text-sm font-semibold">Zuletzt bearbeitet</th>
+              <th className="px-6 py-3 text-sm font-semibold">Status</th>
+              <th className="w-16 px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {filteredPlans.map((obj) => (
               <tr
                 key={obj.document.planId}
-                className="group border-b bg-background transition-colors hover:bg-muted/30"
+                className="group border-b bg-background transition-colors hover:bg-slate-200/65"
               >
-                <td className="px-4 py-4 text-xl font-medium cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
+                <td className="px-6 py-3 text-[2rem] font-medium leading-tight cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
                   {obj.document.planName}
                 </td>
-                <td className="px-4 py-4 text-base font-mono cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
+                <td className="px-6 py-3 text-[1.65rem] font-mono leading-tight cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
                   {obj.document.planId}
                 </td>
-                <td className="px-4 py-4 text-base cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
+                <td className="px-6 py-3 text-[1.65rem] leading-tight cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
                   {obj.document.planningType}
                 </td>
-                <td className="px-4 py-4 text-base cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
+                <td className="px-6 py-3 text-[1.65rem] leading-tight cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
                   {formatDate(obj.document.lastModified)}
                 </td>
-                <td className="px-4 py-4 cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
+                <td className="px-6 py-3 cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
                   <Badge
                     variant={
                       obj.document.status === "Approved"
@@ -249,24 +247,8 @@ export default function Overview() {
                     {getStatusLabel(obj.document.status)}
                   </Badge>
                 </td>
-                <td className="px-4 py-4 text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Plan kopieren"
-                      onClick={() => {
-                        const result = clonePlanFromBase(obj.document.planId);
-                        if (!result.ok) {
-                          toast.error(result.error.message);
-                          return;
-                        }
-                        toast.success("Plan als Kopie erstellt.");
-                      }}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                <td className="px-4 py-3 text-right">
+                  <div className="flex items-center justify-end">
                     <Button asChild variant="ghost" size="icon" aria-label="Plan öffnen">
                       <Link to={`/workspace/${obj.document.planId}`}>
                         <ArrowRight className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-foreground" />
@@ -278,7 +260,7 @@ export default function Overview() {
             ))}
             {filteredPlans.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={6} className="px-6 py-10 text-center text-muted-foreground">
                   Keine Pläne für die aktuelle Suche/Filter gefunden.
                 </td>
               </tr>
