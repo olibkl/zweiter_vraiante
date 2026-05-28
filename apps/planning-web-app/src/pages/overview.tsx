@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, ArrowUpDown, Copy, Filter, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import type { PlanningObject } from "@/types/planning";
@@ -35,6 +35,7 @@ const getStatusLabel = (status: PlanningObject["document"]["status"]) => {
 };
 
 export default function Overview() {
+  const navigate = useNavigate();
   const allPlans = usePlanStore((state) => state.allPlans);
   const clonePlanFromBase = usePlanStore((state) => state.clonePlanFromBase);
   const [searchQuery, setSearchQuery] = useState("");
@@ -98,10 +99,12 @@ export default function Overview() {
     });
   };
 
+  const openPlan = (planId: string) => navigate(`/workspace/${planId}`);
+
   return (
     <div className="space-y-4 py-4">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-5xl font-bold tracking-tight">Planübersicht</h1>
+        <h1 className="text-4xl font-bold tracking-tight">Planübersicht</h1>
         <Button asChild size="icon" aria-label="Plan hinzufügen" className="h-10 w-10 rounded-xl">
           <Link to="/setup">
             <Plus className="h-4 w-4" />
@@ -205,17 +208,28 @@ export default function Overview() {
               <th className="px-4 py-3 text-sm font-semibold">Plantyp</th>
               <th className="px-4 py-3 text-sm font-semibold">Zuletzt bearbeitet</th>
               <th className="px-4 py-3 text-sm font-semibold">Status</th>
-              <th className="w-12 px-4 py-3" />
+              <th className="w-20 px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {filteredPlans.map((obj) => (
-              <tr key={obj.document.planId} className="border-b bg-background hover:bg-muted/20">
-                <td className="px-4 py-4 text-2xl">{obj.document.planName}</td>
-                <td className="px-4 py-4 text-2xl font-mono">{obj.document.planId}</td>
-                <td className="px-4 py-4 text-2xl">{obj.document.planningType}</td>
-                <td className="px-4 py-4 text-2xl">{formatDate(obj.document.lastModified)}</td>
-                <td className="px-4 py-4">
+              <tr
+                key={obj.document.planId}
+                className="group border-b bg-background transition-colors hover:bg-muted/30"
+              >
+                <td className="px-4 py-4 text-xl font-medium cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
+                  {obj.document.planName}
+                </td>
+                <td className="px-4 py-4 text-base font-mono cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
+                  {obj.document.planId}
+                </td>
+                <td className="px-4 py-4 text-base cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
+                  {obj.document.planningType}
+                </td>
+                <td className="px-4 py-4 text-base cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
+                  {formatDate(obj.document.lastModified)}
+                </td>
+                <td className="px-4 py-4 cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
                   <Badge
                     variant={
                       obj.document.status === "Approved"
@@ -255,7 +269,7 @@ export default function Overview() {
                     </Button>
                     <Button asChild variant="ghost" size="icon" aria-label="Plan öffnen">
                       <Link to={`/workspace/${obj.document.planId}`}>
-                        <ArrowRight className="h-5 w-5" />
+                        <ArrowRight className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-foreground" />
                       </Link>
                     </Button>
                   </div>
