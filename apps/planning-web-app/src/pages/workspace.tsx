@@ -25,8 +25,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   ArrowDownToLine,
-  Maximize2,
-  Minimize2,
   MoreVertical,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -506,6 +504,7 @@ export default function Workspace() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [changeLog, setChangeLog] = useState<ChangeLogEntry[]>([]);
   const [showAllChangeLog, setShowAllChangeLog] = useState(false);
+  const [showCompactSettings, setShowCompactSettings] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -1502,10 +1501,6 @@ export default function Workspace() {
     walk(rootNodes, []);
     return path.join(" > ");
   })();
-  const toolbarButtonClass =
-    "border-slate-300 text-slate-800 hover:bg-slate-100 focus-visible:ring-0 focus-visible:border-slate-400";
-  const toolbarToggleActiveClass =
-    "border-slate-400 bg-slate-100 text-slate-900 hover:bg-slate-100 focus-visible:ring-0 focus-visible:border-slate-500";
   const asPlannedAmount = (value: number) =>
     roundNonNegative(value, roundingMode, roundingPrecisionMoney);
   const valuePrecision =
@@ -1812,14 +1807,6 @@ export default function Workspace() {
               >
                 Ebenendetails
               </Button>
-              <Button type="button" size="sm" variant="outline" onClick={handleFullscreenToggle}>
-                {isFullscreen ? (
-                  <Minimize2 className="mr-1 h-4 w-4" />
-                ) : (
-                  <Maximize2 className="mr-1 h-4 w-4" />
-                )}
-                {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-              </Button>
             </div>
           </div>
         )}
@@ -1892,146 +1879,158 @@ export default function Workspace() {
                   {showPositionsFastTab ? (
                   <div className="flex items-start gap-4 p-4">
                     <div className="min-w-0 flex-1 overflow-hidden rounded-lg border bg-card">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/20 px-4 py-3">
-                      <div className="text-sm">
-                        <span className="font-medium">Planungslogik</span>
-                        <span className="mx-2 text-muted-foreground">Â·</span>
-                        <span className="text-muted-foreground">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/20 px-4 py-2">
+                      <div className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">Planungslogik</span>
+                        <span className="mx-2">·</span>
+                        <span>
                           {obj.document.runtime
                             ? `${obj.document.runtime.levels.length} Ebenen, ${obj.document.runtime.buffers.length} aktive Buffer`
-                            : "Planungslogik aktiv"}
+                            : "Aktiv"}
                         </span>
-                        {hasPendingChanges ? (
-                          <Badge variant="secondary" className="ml-3">
-                            Ungespeicherte Ã„nderungen
-                          </Badge>
-                        ) : null}
-	                      </div>
-	                      <div className="flex items-center gap-2">
-	                        <Button
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
                           type="button"
                           size="sm"
-                          variant="outline"
-                          className={toolbarButtonClass}
+                          className="h-9 px-3"
                           onClick={applyPendingChanges}
                           disabled={!hasPendingChanges}
                         >
                           Aktualisieren
                         </Button>
+                        {hasPendingChanges ? (
+                          <Badge variant="secondary">Ungespeicherte Änderungen</Badge>
+                        ) : null}
+                        <div className="inline-flex h-9 items-center overflow-hidden rounded-md border border-slate-300">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className={`h-9 rounded-none px-3 ${
+                              distributionType === "PlanValues" ? "bg-slate-100 font-medium" : ""
+                            }`}
+                            onClick={() => setDistributionType("PlanValues")}
+                          >
+                            Planwerte
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className={`h-9 rounded-none px-3 ${
+                              distributionType === "ReferenceValues" ? "bg-slate-100 font-medium" : ""
+                            }`}
+                            onClick={() => setDistributionType("ReferenceValues")}
+                          >
+                            Referenzwerte
+                          </Button>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-9 px-3"
+                            >
+                              Mehr
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={expandAllNodes}>Alle aufklappen</DropdownMenuItem>
+                            <DropdownMenuItem onClick={collapseAllNodes}>Alle einklappen</DropdownMenuItem>
+                            {isMonthlyViewActive ? (
+                              <DropdownMenuItem onClick={closeMonthlyView}>
+                                Monatsansicht zurücksetzen
+                              </DropdownMenuItem>
+                            ) : null}
+                            <DropdownMenuItem onClick={handleFullscreenToggle}>
+                              {isFullscreen ? "Fullscreen beenden" : "Fullscreen"}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                         <Button
                           type="button"
                           size="sm"
                           variant="outline"
-                          className={toolbarButtonClass}
-                          onClick={expandAllNodes}
+                          className="h-9 px-3"
+                          onClick={() => setShowCompactSettings((current) => !current)}
                         >
-                          Alle aufklappen
+                          Einstellungen
                         </Button>
+                      </div>
+                    </div>
+                    {showCompactSettings ? (
+                      <div className="flex flex-wrap items-center gap-2 border-b bg-background px-4 py-2 text-xs">
+                        <label className="text-muted-foreground">Währung</label>
+                        <select
+                          className="h-8 rounded border border-slate-300 bg-background px-2"
+                          value={currencyCode}
+                          onChange={(event) => {
+                            const nextCurrency = event.target.value as CurrencyCode;
+                            setCurrencyCode(nextCurrency);
+                          }}
+                        >
+                          {CURRENCY_OPTIONS.map((currency) => (
+                            <option key={currency} value={currency}>
+                              {currency}
+                            </option>
+                          ))}
+                        </select>
+                        <label className="text-muted-foreground">Kurs</label>
+                        <Input
+                          value={conversionFactorInput}
+                          onChange={(event) => setConversionFactorInput(event.target.value)}
+                          className="h-8 w-24 px-2 font-mono text-xs"
+                        />
                         <Button
                           type="button"
                           size="sm"
                           variant="outline"
-                          className={toolbarButtonClass}
-                          onClick={collapseAllNodes}
+                          className="h-8 px-3"
+                          onClick={handleApplyCurrencyConversion}
                         >
-                          Alle einklappen
+                          Währung anwenden
                         </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          className={
-                            distributionType === "PlanValues"
-                              ? toolbarToggleActiveClass
-                              : toolbarButtonClass
-                          }
-                          onClick={() => setDistributionType("PlanValues")}
+                        <label className="text-muted-foreground">Rundung</label>
+                        <select
+                          className="h-8 rounded border border-slate-300 bg-background px-2"
+                          value={roundingMode}
+                          onChange={(event) => {
+                            const nextMode = event.target.value as RoundingMode;
+                            setRoundingMode(nextMode);
+                            if (planId) {
+                              updatePlanningSettings(planId, { roundingMode: nextMode });
+                            }
+                          }}
                         >
-                          Planwerte
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          className={
-                            distributionType === "ReferenceValues"
-                              ? toolbarToggleActiveClass
-                              : toolbarButtonClass
-                          }
-                          onClick={() => setDistributionType("ReferenceValues")}
+                          <option value="commercial">Kaufmännisch</option>
+                          <option value="symmetric">Symmetrisch</option>
+                          <option value="up">Immer aufrunden</option>
+                          <option value="down">Immer abrunden</option>
+                        </select>
+                        <label className="text-muted-foreground">Genauigkeit (Wert)</label>
+                        <select
+                          className="h-8 rounded border border-slate-300 bg-background px-2"
+                          value={String(roundingPrecisionMoney)}
+                          onChange={(event) => {
+                            const nextPrecision = Number(event.target.value);
+                            setRoundingPrecisionMoney(nextPrecision);
+                            if (planId) {
+                              updatePlanningSettings(planId, {
+                                roundingPrecisionMoney: nextPrecision,
+                              });
+                            }
+                          }}
                         >
-	                          Referenzwerte
-	                        </Button>
-	                      </div>
-	                    </div>
-	                    <div className="flex flex-wrap items-center gap-2 border-b bg-background px-4 py-2 text-xs">
-  <label className="text-muted-foreground">Währung</label>
-  <select
-    className="h-7 rounded border border-slate-300 bg-background px-2"
-    value={currencyCode}
-    onChange={(event) => {
-      const nextCurrency = event.target.value as CurrencyCode;
-      setCurrencyCode(nextCurrency);
-    }}
-  >
-    {CURRENCY_OPTIONS.map((currency) => (
-      <option key={currency} value={currency}>
-        {currency}
-      </option>
-    ))}
-  </select>
-  <label className="text-muted-foreground">Kurs</label>
-  <Input
-    value={conversionFactorInput}
-    onChange={(event) => setConversionFactorInput(event.target.value)}
-    className="h-7 w-20 px-2 font-mono text-xs"
-  />
-  <Button
-    type="button"
-    size="sm"
-    variant="outline"
-    className={toolbarButtonClass}
-    onClick={handleApplyCurrencyConversion}
-  >
-    Währung anwenden
-  </Button>
-  <label className="text-muted-foreground">Rundung</label>
-  <select
-    className="h-7 rounded border border-slate-300 bg-background px-2"
-    value={roundingMode}
-    onChange={(event) => {
-      const nextMode = event.target.value as RoundingMode;
-      setRoundingMode(nextMode);
-      if (planId) {
-        updatePlanningSettings(planId, { roundingMode: nextMode });
-      }
-    }}
-  >
-    <option value="commercial">Kaufmännisch</option>
-    <option value="symmetric">Symmetrisch</option>
-    <option value="up">Immer aufrunden</option>
-    <option value="down">Immer abrunden</option>
-  </select>
-  <label className="text-muted-foreground">Genauigkeit (Wert)</label>
-  <select
-    className="h-7 rounded border border-slate-300 bg-background px-2"
-    value={String(roundingPrecisionMoney)}
-    onChange={(event) => {
-      const nextPrecision = Number(event.target.value);
-      setRoundingPrecisionMoney(nextPrecision);
-      if (planId) {
-        updatePlanningSettings(planId, {
-          roundingPrecisionMoney: nextPrecision,
-        });
-      }
-    }}
-  >
-    <option value="0">0</option>
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-  </select>
-</div>
+                          <option value="0">0</option>
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                        </select>
+                      </div>
+                    ) : null}
 	                      <div className="border-b bg-muted/5 px-4 py-2">
                         <div className="flex items-center justify-between">
                           <p className="text-xs font-medium text-foreground">Letzte Ã„nderungen</p>

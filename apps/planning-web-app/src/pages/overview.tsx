@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { usePlanStore } from "@/store/usePlanStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,7 @@ type SortMode = "modified_desc" | "modified_asc" | "name_asc" | "name_desc";
 
 const getStatusLabel = (status: PlanningObject["document"]["status"]) => {
   if (status === "Approved") return "Freigegeben";
-  if (status === "InReview") return "In Prüfung";
+  if (status === "InReview") return "In PrÃ¼fung";
   return "Entwurf";
 };
 
@@ -100,29 +100,29 @@ export default function Overview() {
   const openPlan = (planId: string) => navigate(`/workspace/${planId}`);
 
   return (
-    <div className="space-y-4 py-4">
+    <div className="space-y-3 py-3">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-4xl font-bold tracking-tight">Planübersicht</h1>
-        <Button asChild size="icon" aria-label="Plan hinzufügen" className="h-10 w-10 rounded-xl">
+        <Button asChild size="icon" aria-label="Plan hinzufügen" className="h-9 w-9 rounded-xl">
           <Link to="/setup">
             <Plus className="h-4 w-4" />
           </Link>
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[280px] flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Plan suchen..."
-            className="pl-9"
+            className="h-10 pl-9 text-base"
           />
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" size="sm" className="h-10 gap-2 text-base">
               <Filter className="h-4 w-4" />
               Filter
             </Button>
@@ -133,13 +133,13 @@ export default function Overview() {
               checked={statusFilter.includes("Draft")}
               onCheckedChange={() => toggleStatus("Draft")}
             >
-              Entwürfe
+              EntwÃ¼rfe
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={statusFilter.includes("InReview")}
               onCheckedChange={() => toggleStatus("InReview")}
             >
-              In Prüfung
+              In PrÃ¼fung
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={statusFilter.includes("Approved")}
@@ -163,7 +163,7 @@ export default function Overview() {
         </DropdownMenu>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" size="sm" className="h-10 gap-2 text-base">
               <ArrowUpDown className="h-4 w-4" />
               Sortieren
             </Button>
@@ -201,33 +201,33 @@ export default function Overview() {
         <table className="w-full text-left">
           <thead className="bg-muted/45">
             <tr className="border-b">
-              <th className="px-6 py-3 text-sm font-semibold">Plan</th>
-              <th className="px-6 py-3 text-sm font-semibold">Plan-ID</th>
-              <th className="px-6 py-3 text-sm font-semibold">Plantyp</th>
-              <th className="px-6 py-3 text-sm font-semibold">Zuletzt bearbeitet</th>
-              <th className="px-6 py-3 text-sm font-semibold">Status</th>
-              <th className="w-16 px-4 py-3" />
+              <th className="px-5 py-2.5 text-[0.95rem] font-semibold">Plan</th>
+              <th className="px-5 py-2.5 text-[0.95rem] font-semibold">Plan-ID</th>
+              <th className="px-5 py-2.5 text-[0.95rem] font-semibold">Plantyp</th>
+              <th className="px-5 py-2.5 text-[0.95rem] font-semibold">Zuletzt bearbeitet</th>
+              <th className="px-5 py-2.5 text-[0.95rem] font-semibold">Status</th>
+              <th className="w-14 px-3 py-2.5" />
             </tr>
           </thead>
           <tbody>
             {filteredPlans.map((obj) => (
               <tr
                 key={obj.document.planId}
-                className="group border-b bg-background transition-colors hover:bg-slate-200/65"
+                className="group border-b bg-background transition-colors hover:bg-slate-200/75"
               >
-                <td className="px-6 py-3 text-[2rem] font-medium leading-tight cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
+                <td className="cursor-pointer px-5 py-3 text-[1.02rem] font-medium leading-tight" onClick={() => openPlan(obj.document.planId)}>
                   {obj.document.planName}
                 </td>
-                <td className="px-6 py-3 text-[1.65rem] font-mono leading-tight cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
+                <td className="cursor-pointer px-5 py-3 text-[0.98rem] font-mono leading-tight" onClick={() => openPlan(obj.document.planId)}>
                   {obj.document.planId}
                 </td>
-                <td className="px-6 py-3 text-[1.65rem] leading-tight cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
+                <td className="cursor-pointer px-5 py-3 text-[0.98rem] leading-tight" onClick={() => openPlan(obj.document.planId)}>
                   {obj.document.planningType}
                 </td>
-                <td className="px-6 py-3 text-[1.65rem] leading-tight cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
+                <td className="cursor-pointer px-5 py-3 text-[0.98rem] leading-tight" onClick={() => openPlan(obj.document.planId)}>
                   {formatDate(obj.document.lastModified)}
                 </td>
-                <td className="px-6 py-3 cursor-pointer" onClick={() => openPlan(obj.document.planId)}>
+                <td className="cursor-pointer px-5 py-3" onClick={() => openPlan(obj.document.planId)}>
                   <Badge
                     variant={
                       obj.document.status === "Approved"
@@ -247,11 +247,11 @@ export default function Overview() {
                     {getStatusLabel(obj.document.status)}
                   </Badge>
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-3 py-3 text-right">
                   <div className="flex items-center justify-end">
-                    <Button asChild variant="ghost" size="icon" aria-label="Plan öffnen">
+                    <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Plan öffnen">
                       <Link to={`/workspace/${obj.document.planId}`}>
-                        <ArrowRight className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-foreground" />
+                        <ArrowRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
                       </Link>
                     </Button>
                   </div>
@@ -261,7 +261,7 @@ export default function Overview() {
             {filteredPlans.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-10 text-center text-muted-foreground">
-                  Keine Pläne für die aktuelle Suche/Filter gefunden.
+                  Keine PlÃ¤ne fÃ¼r die aktuelle Suche/Filter gefunden.
                 </td>
               </tr>
             ) : null}
@@ -271,3 +271,4 @@ export default function Overview() {
     </div>
   );
 }
+
