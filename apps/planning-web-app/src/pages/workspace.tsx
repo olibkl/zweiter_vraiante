@@ -199,6 +199,15 @@ const InfoFieldLabel = ({
   </span>
 );
 
+const NodeDetailItem = ({ label, value }: { label: string; value: string }) => (
+  <div className="space-y-1">
+    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      {label}
+    </p>
+    <p className="text-2xl leading-none text-foreground">{value}</p>
+  </div>
+);
+
 export default function Workspace() {
   const navigate = useNavigate();
   const deletePlan = usePlanStore((state) => state.deletePlan);
@@ -222,6 +231,7 @@ export default function Workspace() {
   const refreshPlanFromApi = usePlanStore((state) => state.refreshPlanFromApi);
   const { planId } = useParams();
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editPlanName, setEditPlanName] = useState("");
@@ -1383,6 +1393,18 @@ export default function Workspace() {
     ? getNodeById(selectedMonthlyNodeId)
     : null;
   const selectedDrilldownNode = selectedNodeId ? getNodeById(selectedNodeId) : null;
+  const selectedDrilldownPlanTotal = selectedDrilldownNode
+    ? getEffectivePlanTotal(selectedDrilldownNode)
+    : 0;
+  const selectedDrilldownPlanPercent = selectedDrilldownNode
+    ? selectedDrilldownNode.metrics.refSalesAmount === 0
+      ? 0
+      : (selectedDrilldownPlanTotal / selectedDrilldownNode.metrics.refSalesAmount) * 100
+    : 0;
+  const selectedDrilldownDeltaPercent = selectedDrilldownNode
+    ? calculateDelta(selectedDrilldownNode.metrics.refSalesAmount, selectedDrilldownPlanTotal)
+    : 0;
+  const selectedDrilldownChildrenCount = selectedDrilldownNode?.children?.length ?? 0;
   const selectedMonthlyTotal = selectedMonthlyNode
     ? getEffectivePlanTotal(selectedMonthlyNode)
     : 0;
@@ -1409,6 +1431,53 @@ export default function Workspace() {
     "border-slate-300 text-slate-800 hover:bg-slate-100 focus-visible:ring-0 focus-visible:border-slate-400";
   const toolbarToggleActiveClass =
     "border-slate-400 bg-slate-100 text-slate-900 hover:bg-slate-100 focus-visible:ring-0 focus-visible:border-slate-500";
+  const renderNodeDetailsPanel = () => (
+    <div className="h-full rounded-lg border border-border/80 bg-card">
+      <div className="border-b px-5 py-4">
+        <p className="text-[28px] font-semibold text-foreground">Ebenendetails</p>
+      </div>
+      {selectedDrilldownNode ? (
+        <div className="space-y-6 px-5 py-5">
+          <NodeDetailItem label="Name" value={selectedDrilldownNode.name} />
+          <div className="grid grid-cols-2 gap-4">
+            <NodeDetailItem
+              label="Ebene"
+              value={formatLevelLabel(selectedDrilldownNode.level)}
+            />
+            <NodeDetailItem label="ID" value={selectedDrilldownNode.id} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <NodeDetailItem
+              label="VK VJ"
+              value={formatNumber(selectedDrilldownNode.metrics.refSalesAmount)}
+            />
+            <NodeDetailItem
+              label="VK Plan"
+              value={formatNumber(selectedDrilldownPlanTotal)}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <NodeDetailItem
+              label="% Plan"
+              value={formatPercent(selectedDrilldownPlanPercent)}
+            />
+            <NodeDetailItem
+              label="Entw. %"
+              value={formatPercent(selectedDrilldownDeltaPercent)}
+            />
+          </div>
+          <NodeDetailItem
+            label="Unterebenen"
+            value={String(selectedDrilldownChildrenCount)}
+          />
+        </div>
+      ) : (
+        <div className="px-5 py-8 text-sm text-muted-foreground">
+          Knoten auswählen, um Details zu sehen.
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="flex flex-col h-full">
@@ -1590,6 +1659,15 @@ export default function Workspace() {
         {!isMonthlyViewActive && (
           <div className="sticky top-0 z-20 mb-7 flex items-center justify-end gap-2 shrink-0 bg-background/95 pb-2 backdrop-blur supports-[backdrop-filter]:bg-background/80">
             <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="xl:hidden"
+                onClick={() => setIsDetailsDrawerOpen(true)}
+              >
+                Ebenendetails
+              </Button>
               <Button
                 type="button"
                 size="sm"
@@ -1790,9 +1868,6 @@ export default function Workspace() {
                           {selectedDrilldownNode.name}
                         </span>
                         <span>Pfad: {selectedDrilldownPath}</span>
-                        <span>Level: {selectedDrilldownNode.level}</span>
-                        <span>VK VJ: {formatNumber(selectedDrilldownNode.metrics.refSalesAmount)}</span>
-                        <span>VK Plan: {formatNumber(getEffectivePlanTotal(selectedDrilldownNode))}</span>
                       </div>
                     ) : null}
                     <Table className="w-full table-fixed">
@@ -1885,6 +1960,9 @@ export default function Workspace() {
                       </TableBody>
                     </Table>
                   </div>
+                  <aside className="sticky top-3 hidden w-[340px] shrink-0 self-start xl:block">
+                    {renderNodeDetailsPanel()}
+                  </aside>
                 </div>
               ) : (
                 <div className="flex w-fit max-w-full flex-col gap-4">
@@ -2432,6 +2510,29 @@ export default function Workspace() {
             </div>
           )}
         </div>
+        {isDetailsDrawerOpen ? (
+          <div className="fixed inset-0 z-40 xl:hidden">
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/35"
+              aria-label="Ebenendetails schließen"
+              onClick={() => setIsDetailsDrawerOpen(false)}
+            />
+            <div className="absolute right-0 top-0 h-full w-[86vw] max-w-[360px] overflow-y-auto bg-background p-3 shadow-xl">
+              <div className="mb-3 flex justify-end">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsDetailsDrawerOpen(false)}
+                >
+                  Schließen
+                </Button>
+              </div>
+              {renderNodeDetailsPanel()}
+            </div>
+          </div>
+        ) : null}
       </main>
     </div>
   );
