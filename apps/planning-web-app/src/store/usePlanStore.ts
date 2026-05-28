@@ -26,10 +26,16 @@ import type {
   PlanningDistributionType,
   PlanningNode,
   PlanningObject,
+  PlanningRoundingMode,
   PlanningStatus,
   PlanningType,
   SelectedHierarchy,
 } from "@/types/planning";
+import {
+  DEFAULT_MONEY_PRECISION,
+  DEFAULT_PHYSICAL_PRECISION,
+  DEFAULT_ROUNDING_MODE,
+} from "@/lib/rounding";
 
 export type PlanStatus = "Idle" | PlanningStatus;
 
@@ -70,9 +76,25 @@ interface PlanStoreState {
   refreshPlanFromApi: (planId: string) => Promise<IntegrationResult<void>>;
   resetStore: () => void;
   deletePlan: (planId: string) => void;
+  clonePlanFromBase: (planId: string) => IntegrationResult<string>;
+  convertPlanCurrency: (
+    planId: string,
+    targetCurrency: "EUR" | "USD" | "GBP" | "CHF",
+    factor: number,
+  ) => IntegrationResult<void>;
   updatePlanMetadata: (
     planId: string,
     payload: { planName: string; description: string; comparisonYear: string },
+  ) => IntegrationResult<void>;
+  updatePlanningSettings: (
+    planId: string,
+    settings: {
+      currencyCode?: "EUR" | "USD" | "GBP" | "CHF";
+      roundingMode?: PlanningRoundingMode;
+      roundingPrecisionMoney?: number;
+      roundingPrecisionPhysical?: number;
+      sumPolicy?: "children_sum";
+    },
   ) => IntegrationResult<void>;
   restorePlanSnapshot: (planId: string, snapshot: PlanningObject) => IntegrationResult<void>;
   setPlanStatus: (
@@ -180,6 +202,35 @@ const resolvePlanningType = (kpis: string[]): PlanningType => {
   return "Umsatz";
 };
 
+const convertTreeByFactor = (nodes: PlanningNode[], factor: number): PlanningNode[] =>
+  nodes.map((node) => ({
+    ...node,
+    metrics: {
+      ...node.metrics,
+      refSalesAmount: node.metrics.refSalesAmount * factor,
+      planSalesAmount: node.metrics.planSalesAmount * factor,
+      refCostOfSales:
+        node.metrics.refCostOfSales === undefined
+          ? undefined
+          : node.metrics.refCostOfSales * factor,
+    },
+    monthlyValues: node.monthlyValues.map((monthly) => ({
+      ...monthly,
+      refSalesAmount: monthly.refSalesAmount * factor,
+      planSalesAmount: monthly.planSalesAmount * factor,
+    })),
+    children: node.children ? convertTreeByFactor(node.children, factor) : undefined,
+  }));
+
+const generateCopyPlanId = (sourcePlanId: string) => {
+  const suffix = `${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}${String(
+    new Date().getDate(),
+  ).padStart(2, "0")}-${String(new Date().getHours()).padStart(2, "0")}${String(
+    new Date().getMinutes(),
+  ).padStart(2, "0")}`;
+  return `${sourcePlanId}-COPY-${suffix}`;
+};
+
 const planIntegration = localPlanIntegration;
 
 const createActivePlanState = (plan: PlanningObject) => ({
@@ -283,6 +334,11 @@ export const usePlanStore = create<PlanStoreState>()(
               referencePeriod: completeReference,
               status: "Draft",
               selectedHierarchies: hierarchies ?? [],
+              currencyCode: "EUR",
+              roundingMode: DEFAULT_ROUNDING_MODE,
+              roundingPrecisionMoney: DEFAULT_MONEY_PRECISION,
+              roundingPrecisionPhysical: DEFAULT_PHYSICAL_PRECISION,
+              sumPolicy: "children_sum",
               lastModified: new Date().toISOString(),
             },
             aggregateTotal: recalculatedAggregateTotal,
@@ -566,6 +622,156 @@ export const usePlanStore = create<PlanStoreState>()(
           status: state.planId === planId ? "Idle" : state.status,
           data: state.planId === planId ? [] : state.data,
         })),
+
+      clonePlanFromBase: (planId) => {
+        const sourcePlan = get().allPlans.find((plan) => plan.document.planId === planId);
+        if (!sourcePlan) {
+          return {
+            ok: false,
+            error: { code: "NOT_FOUND", message: "Quellplan wurde nicht gefunden." },
+          };
+        }
+
+        const nextPlanId = generateCopyPlanId(sourcePlan.document.planId);
+        const clonedPlan: PlanningObject = {
+          ...structuredClone(sourcePlan),
+          document: {
+            ...structuredClone(sourcePlan.document),
+            planId: nextPlanId,
+            planName: `${sourcePlan.document.planName} (Kopie)`,
+            status: "Draft",
+            lastModified: new Date().toISOString(),
+          },
+        };
+
+        set((state) => ({
+          allPlans: [...state.allPlans, clonedPlan],
+        }));
+        syncPlanToApi(get, nextPlanId);
+        return { ok: true, data: nextPlanId };
+      },
+
+      convertPlanCurrency: (planId, targetCurrency, factor) => {
+        if (!Number.isFinite(factor) || factor <= 0) {
+          return {
+            ok: false,
+            error: { code: "INVALID_STATUS", message: "Ungültiger Umrechnungsfaktor." },
+          };
+        }
+        let hasPlan = false;
+        let isReadOnly = false;
+        let didUpdate = false;
+        set((state) => ({
+          allPlans: state.allPlans.map((plan) => {
+            if (plan.document.planId !== planId) return plan;
+            hasPlan = true;
+            if (planIntegration.policy.isPlanReadOnly(plan)) {
+              isReadOnly = true;
+              return plan;
+            }
+            didUpdate = true;
+            const convertedData = convertTreeByFactor(plan.data, factor);
+            const convertedAggregateTotal = plan.aggregateTotal
+              ? {
+                  ...plan.aggregateTotal,
+                  metrics: {
+                    ...plan.aggregateTotal.metrics,
+                    refSalesAmount: plan.aggregateTotal.metrics.refSalesAmount * factor,
+                    planSalesAmount: plan.aggregateTotal.metrics.planSalesAmount * factor,
+                    refCostOfSales:
+                      plan.aggregateTotal.metrics.refCostOfSales === undefined
+                        ? undefined
+                        : plan.aggregateTotal.metrics.refCostOfSales * factor,
+                  },
+                  monthlyValues: plan.aggregateTotal.monthlyValues.map((monthly) => ({
+                    ...monthly,
+                    refSalesAmount: monthly.refSalesAmount * factor,
+                    planSalesAmount: monthly.planSalesAmount * factor,
+                  })),
+                  calculatedAt: new Date().toISOString(),
+                }
+              : undefined;
+            return {
+              ...plan,
+              data: convertedData,
+              aggregateTotal: convertedAggregateTotal,
+              document: {
+                ...plan.document,
+                description: `${plan.document.description} | Währung: ${targetCurrency}`,
+                lastModified: new Date().toISOString(),
+              },
+            };
+          }),
+        }));
+        if (!hasPlan) {
+          return {
+            ok: false,
+            error: { code: "NOT_FOUND", message: "Plan wurde nicht gefunden." },
+          };
+        }
+        if (isReadOnly) {
+          return {
+            ok: false,
+            error: { code: "READ_ONLY", message: "Freigegebene Pläne können nicht umgerechnet werden." },
+          };
+        }
+        if (didUpdate) {
+          syncPlanToApi(get, planId);
+        }
+        return { ok: true, data: undefined };
+      },
+
+      updatePlanningSettings: (planId, settings) => {
+        let hasPlan = false;
+        let isReadOnly = false;
+        let didUpdate = false;
+        set((state) => ({
+          allPlans: state.allPlans.map((plan) => {
+            if (plan.document.planId !== planId) return plan;
+            hasPlan = true;
+            if (planIntegration.policy.isPlanReadOnly(plan)) {
+              isReadOnly = true;
+              return plan;
+            }
+            didUpdate = true;
+            return {
+              ...plan,
+              document: {
+                ...plan.document,
+                currencyCode: settings.currencyCode ?? plan.document.currencyCode ?? "EUR",
+                roundingMode:
+                  settings.roundingMode ?? plan.document.roundingMode ?? DEFAULT_ROUNDING_MODE,
+                roundingPrecisionMoney:
+                  settings.roundingPrecisionMoney ??
+                  plan.document.roundingPrecisionMoney ??
+                  DEFAULT_MONEY_PRECISION,
+                roundingPrecisionPhysical:
+                  settings.roundingPrecisionPhysical ??
+                  plan.document.roundingPrecisionPhysical ??
+                  DEFAULT_PHYSICAL_PRECISION,
+                sumPolicy: "children_sum",
+                lastModified: new Date().toISOString(),
+              },
+            };
+          }),
+        }));
+        if (!hasPlan) {
+          return {
+            ok: false,
+            error: { code: "NOT_FOUND", message: "Plan wurde nicht gefunden." },
+          };
+        }
+        if (isReadOnly) {
+          return {
+            ok: false,
+            error: { code: "READ_ONLY", message: "Freigegebene Pläne sind schreibgeschützt." },
+          };
+        }
+        if (didUpdate) {
+          syncPlanToApi(get, planId);
+        }
+        return { ok: true, data: undefined };
+      },
 
       updatePlanMetadata: (planId, payload) => {
         let hasPlan = false;

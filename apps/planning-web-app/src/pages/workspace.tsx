@@ -28,9 +28,11 @@ import {
   CircleHelp,
   FileText,
   ListTree,
+  Lock,
   Maximize2,
   Minimize2,
   MoreVertical,
+  Unlock,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -48,19 +50,30 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DEFAULT_MONEY_PRECISION,
+  DEFAULT_PHYSICAL_PRECISION,
+  DEFAULT_ROUNDING_MODE,
+  roundNonNegative,
+} from "@/lib/rounding";
 
 const formatNumber = (value: number) => {
   return new Intl.NumberFormat("de-DE", {
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(value);
 };
 
 const formatPercent = (value: number) => {
   return new Intl.NumberFormat("de-DE", {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(value);
 };
+
+const CURRENCY_OPTIONS = ["EUR", "USD", "GBP", "CHF"] as const;
+type CurrencyCode = (typeof CURRENCY_OPTIONS)[number];
+type RoundingMode = "commercial" | "symmetric" | "up" | "down";
 
 const getMonthLabel = (date: string) => {
   const months = [
@@ -199,12 +212,22 @@ const InfoFieldLabel = ({
   </span>
 );
 
-const NodeDetailItem = ({ label, value }: { label: string; value: string }) => (
+const NodeDetailItem = ({
+  label,
+  value,
+  numeric = false,
+}: {
+  label: string;
+  value: string;
+  numeric?: boolean;
+}) => (
   <div className="space-y-1">
     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
       {label}
     </p>
-    <p className="text-2xl leading-none text-foreground">{value}</p>
+    <p className={`text-2xl leading-none text-foreground ${numeric ? "font-mono" : ""}`}>
+      {value}
+    </p>
   </div>
 );
 
@@ -227,11 +250,20 @@ export default function Workspace() {
     (state) => state.importComparisonData,
   );
   const distributeTopDown = usePlanStore((state) => state.distributeTopDown);
+  const convertPlanCurrency = usePlanStore((state) => state.convertPlanCurrency);
   const commitPlanToApi = usePlanStore((state) => state.commitPlanToApi);
   const refreshPlanFromApi = usePlanStore((state) => state.refreshPlanFromApi);
   const { planId } = useParams();
   const [isNavigating, setIsNavigating] = useState(false);
   const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+  const [lockedPercentNodeIds, setLockedPercentNodeIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [currencyCode, setCurrencyCode] = useState<CurrencyCode>("EUR");
+  const [conversionFactorInput, setConversionFactorInput] = useState("1.00");
+  const [roundingMode, setRoundingMode] = useState<RoundingMode>("commercial");
+  const [roundingPrecision, setRoundingPrecision] = useState(2);
+  const [enforcePercentPlanning, setEnforcePercentPlanning] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editPlanName, setEditPlanName] = useState("");
@@ -330,6 +362,17 @@ export default function Workspace() {
     toast.success(
       `Vergleichsdaten aus ${obj.document.comparisonYear} wurden importiert.`,
     );
+  };
+  const handleApplyCurrencyConversion = () => {
+    if (!planId) return;
+    const normalized = conversionFactorInput.replace(",", ".").trim();
+    const factor = Number(normalized);
+    const result = convertPlanCurrency(planId, currencyCode, factor);
+    if (!result.ok) {
+      toast.error(result.error.message);
+      return;
+    }
+    toast.success(`Planwerte wurden nach ${currencyCode} umgerechnet.`);
   };
   const handleFullscreenToggle = async () => {
     try {
@@ -619,7 +662,7 @@ export default function Workspace() {
       if (!children.length) {
         return;
       }
-      const target = Math.max(0, Math.round(Number.isFinite(parsed) ? parsed : 0));
+      const target = asPlannedAmount(Number.isFinite(parsed) ? parsed : 0);
       const siblingTotal = children.reduce(
         (sum, child) => sum + getMonthlyPlanValue(child, date),
         0,
@@ -736,7 +779,7 @@ export default function Workspace() {
 
     const share = parsePlanInput(draftValue);
     const baseTotal = currentTotal > 0 ? currentTotal : fallbackTotal;
-    const nextPlanValue = Math.max(0, Math.round((baseTotal * share) / 100));
+    const nextPlanValue = asPlannedAmount((baseTotal * share) / 100);
     if (applyNow) {
       updateMonthlyPlan(nodeId, date, String(nextPlanValue));
       setMonthlyPlanDrafts((prev) => {
@@ -780,7 +823,7 @@ export default function Workspace() {
       if (!children.length) {
         return false;
       }
-      const targetTotal = Math.max(0, Math.round(parsed));
+      const targetTotal = asPlannedAmount(parsed);
       const siblingTotal = children.reduce(
         (sum, child) => sum + getEffectivePlanTotal(child),
         0,
@@ -814,7 +857,7 @@ export default function Workspace() {
       (sum, month) => sum + month.planSalesAmount,
       0,
     );
-    const nextTotal = Math.max(0, Math.round(parsed));
+    const nextTotal = asPlannedAmount(parsed);
     let remainder = nextTotal;
 
     const updates = node.monthlyValues.map((month, index) => {
@@ -860,7 +903,7 @@ export default function Workspace() {
     if (monthCount === 0) return false;
 
     const parentMonthlyTarget: number[] = [];
-    let remainder = Math.max(0, Math.round(targetTotal));
+    let remainder = asPlannedAmount(targetTotal);
     const currentParentTotal = node.monthlyValues.reduce(
       (sum, month) => sum + month.planSalesAmount,
       0,
@@ -1011,7 +1054,7 @@ export default function Workspace() {
     const share = parsePlanInput(draftValue);
     const nextTotal = Math.max(
       0,
-      Math.round((node.metrics.refSalesAmount * share) / 100),
+      asPlannedAmount((node.metrics.refSalesAmount * share) / 100),
     );
     if (applyNow) {
       updateTotalPlan(node, String(nextTotal));
@@ -1058,7 +1101,7 @@ export default function Workspace() {
       const share = parsePlanInput(draftPercent);
       const nextTotal = Math.max(
         0,
-        Math.round((node.metrics.refSalesAmount * share) / 100),
+        asPlannedAmount((node.metrics.refSalesAmount * share) / 100),
       );
       normalizedTotalPlanDrafts[nodeId] = String(nextTotal);
     });
@@ -1105,7 +1148,7 @@ export default function Workspace() {
             const share = parsePlanInput(draftPercent);
             const currentTotal = getEffectivePlanTotal(node);
             const baseTotal = currentTotal > 0 ? currentTotal : node.metrics.planSalesAmount;
-            const nextPlanValue = Math.max(0, Math.round((baseTotal * share) / 100));
+            const nextPlanValue = asPlannedAmount((baseTotal * share) / 100);
             normalizedMonthlyPlanDrafts[key] = String(nextPlanValue);
           }
           const draft = normalizedMonthlyPlanDrafts[key];
@@ -1209,12 +1252,38 @@ export default function Workspace() {
             >
               {formatLevelLabel(node.level)}
             </span>
+            <button
+              type="button"
+              className="inline-flex h-6 w-6 items-center justify-center rounded border border-slate-300 text-slate-600 hover:bg-slate-100"
+              onClick={(event) => {
+                event.stopPropagation();
+                setLockedPercentNodeIds((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(node.id)) {
+                    next.delete(node.id);
+                    toast.success(`% PLAN für ${node.name} ist entsperrt.`);
+                  } else {
+                    next.add(node.id);
+                    toast.success(`% PLAN für ${node.name} ist gesperrt.`);
+                  }
+                  return next;
+                });
+              }}
+              title={isPercentLocked(node.id) ? "% PLAN entsperren" : "% PLAN sperren"}
+              aria-label={isPercentLocked(node.id) ? "% PLAN entsperren" : "% PLAN sperren"}
+            >
+              {isPercentLocked(node.id) ? (
+                <Lock className="h-3.5 w-3.5" />
+              ) : (
+                <Unlock className="h-3.5 w-3.5" />
+              )}
+            </button>
           </div>
         </TableCell>
         <TableCell className="w-[10%] text-right font-mono text-sm">
           {formatNumber(node.metrics.refSalesAmount)}
         </TableCell>
-        <TableCell className="w-[10%] text-right text-sm">
+        <TableCell className="w-[10%] text-right font-mono text-sm">
           {formatPercent(100)}
         </TableCell>
         <TableCell className="w-[10%]">
@@ -1225,7 +1294,7 @@ export default function Workspace() {
               className={`h-8 bg-transparent px-0 text-right font-mono text-sm text-foreground shadow-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60 ${
                 totalPlanError
                   ? "border-red-500 focus-visible:border-red-500"
-                  : "border-transparent focus-visible:border-transparent"
+                  : "border-amber-200 bg-amber-50/40 focus-visible:border-amber-300"
               }`}
               value={totalPlanInputValue}
               onChange={(event) => updateTotalPlanDraft(node.id, event.target.value)}
@@ -1254,7 +1323,7 @@ export default function Workspace() {
                   return;
                 }
               }}
-              disabled={obj.document.status === "Approved"}
+              disabled={obj.document.status === "Approved" || enforcePercentPlanning}
             />
             {totalPlanError ? (
               <p className="mt-1 text-right text-[11px] text-red-600">{totalPlanError}</p>
@@ -1269,7 +1338,7 @@ export default function Workspace() {
               className={`h-8 bg-transparent px-0 text-right text-sm text-foreground shadow-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60 ${
                 totalShareError
                   ? "border-red-500 focus-visible:border-red-500"
-                  : "border-transparent focus-visible:border-transparent"
+                  : "border-emerald-200 bg-emerald-50/40 focus-visible:border-emerald-300"
               }`}
               value={totalShareInputValue}
               onChange={(event) =>
@@ -1300,20 +1369,20 @@ export default function Workspace() {
                   return;
                 }
               }}
-              disabled={obj.document.status === "Approved"}
+              disabled={isPercentLocked(node.id)}
             />
             {totalShareError ? (
               <p className="mt-1 text-right text-[11px] text-red-600">{totalShareError}</p>
             ) : null}
           </div>
         </TableCell>
-        <TableCell className="w-[10%] text-right text-foreground">
+        <TableCell className="w-[10%] text-right font-mono text-foreground">
           {formatPercent(
             calculateDelta(node.metrics.refSalesAmount, effectivePlanTotal),
           )}
         </TableCell>
         <TableCell className="w-[10%] pr-6 text-right">
-          <div className="flex justify-end gap-1">
+          <div className="hidden justify-end gap-1">
             {hasChildren && (
               <Button
                 type="button"
@@ -1388,6 +1457,8 @@ export default function Workspace() {
     }
     return ancestors;
   };
+  const isPercentLocked = (nodeId: string) =>
+    obj.document.status === "Approved" || lockedPercentNodeIds.has(nodeId);
 
   const selectedMonthlyNode = selectedMonthlyNodeId
     ? getNodeById(selectedMonthlyNodeId)
@@ -1431,6 +1502,25 @@ export default function Workspace() {
     "border-slate-300 text-slate-800 hover:bg-slate-100 focus-visible:ring-0 focus-visible:border-slate-400";
   const toolbarToggleActiveClass =
     "border-slate-400 bg-slate-100 text-slate-900 hover:bg-slate-100 focus-visible:ring-0 focus-visible:border-slate-500";
+  const roundWithSettings = (value: number) => {
+    const factor = 10 ** roundingPrecision;
+    const scaled = value * factor;
+    if (roundingMode === "up") return Math.ceil(scaled) / factor;
+    if (roundingMode === "down") return Math.floor(scaled) / factor;
+    if (roundingMode === "symmetric") {
+      return (Math.sign(scaled) * Math.floor(Math.abs(scaled) + 0.5)) / factor;
+    }
+    return Math.round(scaled) / factor;
+  };
+  const asPlannedAmount = (value: number) => Math.max(0, roundWithSettings(value));
+  const currencySymbol =
+    currencyCode === "EUR"
+      ? "€"
+      : currencyCode === "USD"
+        ? "$"
+        : currencyCode === "GBP"
+          ? "£"
+          : "CHF";
   const renderNodeDetailsPanel = () => (
     <div className="h-full rounded-lg border border-border/80 bg-card">
       <div className="border-b px-5 py-4">
@@ -1449,27 +1539,87 @@ export default function Workspace() {
           <div className="grid grid-cols-2 gap-4">
             <NodeDetailItem
               label="VK VJ"
-              value={formatNumber(selectedDrilldownNode.metrics.refSalesAmount)}
+              value={`${formatNumber(selectedDrilldownNode.metrics.refSalesAmount)} ${currencySymbol}`}
+              numeric
             />
             <NodeDetailItem
               label="VK Plan"
-              value={formatNumber(selectedDrilldownPlanTotal)}
+              value={`${formatNumber(selectedDrilldownPlanTotal)} ${currencySymbol}`}
+              numeric
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <NodeDetailItem
               label="% Plan"
               value={formatPercent(selectedDrilldownPlanPercent)}
+              numeric
             />
             <NodeDetailItem
               label="Entw. %"
               value={formatPercent(selectedDrilldownDeltaPercent)}
+              numeric
             />
           </div>
           <NodeDetailItem
             label="Unterebenen"
             value={String(selectedDrilldownChildrenCount)}
+            numeric
           />
+          {selectedDrilldownChildrenCount > 0 ? (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Verteilung Unterebenen (VK Plan)
+              </p>
+              <div className="flex items-center gap-3">
+                <svg viewBox="0 0 42 42" className="h-28 w-28">
+                  {(() => {
+                    const children = selectedDrilldownNode.children ?? [];
+                    const totals = children.map((child) => ({
+                      name: child.name,
+                      value: getEffectivePlanTotal(child),
+                    }));
+                    const sum = totals.reduce((acc, item) => acc + item.value, 0);
+                    let start = 0;
+                    const colors = ["#2563eb", "#14b8a6", "#f59e0b", "#8b5cf6", "#ef4444", "#10b981"];
+                    return totals.map((slice, index) => {
+                      const ratio = sum > 0 ? slice.value / sum : 0;
+                      const dash = Math.max(0, ratio * 100);
+                      const segment = (
+                        <circle
+                          key={`${slice.name}-${index}`}
+                          cx="21"
+                          cy="21"
+                          r="15.915"
+                          fill="transparent"
+                          stroke={colors[index % colors.length]}
+                          strokeWidth="7"
+                          strokeDasharray={`${dash} ${100 - dash}`}
+                          strokeDashoffset={-start}
+                          transform="rotate(-90 21 21)"
+                        />
+                      );
+                      start += dash;
+                      return segment;
+                    });
+                  })()}
+                </svg>
+                <div className="space-y-1 text-xs">
+                  {(selectedDrilldownNode.children ?? []).slice(0, 6).map((child, index) => {
+                    const colors = ["#2563eb", "#14b8a6", "#f59e0b", "#8b5cf6", "#ef4444", "#10b981"];
+                    return (
+                      <div key={child.id} className="flex items-center gap-2">
+                        <span
+                          className="inline-block h-2.5 w-2.5 rounded-full"
+                          style={{ backgroundColor: colors[index % colors.length] }}
+                        />
+                        <span className="text-muted-foreground">{child.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className="px-5 py-8 text-sm text-muted-foreground">
@@ -1771,9 +1921,9 @@ export default function Workspace() {
                             Ungespeicherte Änderungen
                           </Badge>
                         ) : null}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
+	                      </div>
+	                      <div className="flex items-center gap-2">
+	                        <Button
                           type="button"
                           size="sm"
                           variant="outline"
@@ -1825,19 +1975,80 @@ export default function Workspace() {
                           }
                           onClick={() => setDistributionType("ReferenceValues")}
                         >
-                          Referenzwerte
-                        </Button>
-                      </div>
-                    </div>
-                    {showHelpPanel ? (
-                      <div className="border-b bg-muted/10 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-                        <p><span className="font-medium text-foreground">Begriffe:</span> VK VJ = Verkaufswert Vorjahr, VK Plan = geplanter Verkaufswert, Entw. % = prozentuale Abweichung zu VK VJ.</p>
-                        <p><span className="font-medium text-foreground">Regeln:</span> % Plan = (VK Plan / VK VJ) * 100. Entw. % = ((VK Plan - VK VJ) / VK VJ) * 100.</p>
-                        <p><span className="font-medium text-foreground">Top-down:</span> verteilt Elternwerte auf Kinder nach Plan- oder Referenzgewichten.</p>
-                      </div>
-                    ) : null}
-                    {changeLog.length > 0 ? (
-                      <div className="border-b bg-muted/5 px-4 py-2">
+	                          Referenzwerte
+	                        </Button>
+	                      </div>
+	                    </div>
+	                    <div className="flex flex-wrap items-center gap-2 border-b bg-background px-4 py-2 text-xs">
+	                      <span className="font-medium text-foreground">Steuerung</span>
+	                      <Button
+	                        type="button"
+	                        size="sm"
+	                        variant="outline"
+	                        className={toolbarButtonClass}
+	                        onClick={() => setEnforcePercentPlanning((current) => !current)}
+	                      >
+	                        {enforcePercentPlanning ? "Budgetschutz aktiv (%-Planung)" : "Budgetschutz aus"}
+	                      </Button>
+	                      <label className="text-muted-foreground">Währung</label>
+	                      <select
+	                        className="h-7 rounded border border-slate-300 bg-background px-2"
+	                        value={currencyCode}
+	                        onChange={(event) => setCurrencyCode(event.target.value as CurrencyCode)}
+	                      >
+	                        {CURRENCY_OPTIONS.map((currency) => (
+	                          <option key={currency} value={currency}>
+	                            {currency}
+	                          </option>
+	                        ))}
+	                      </select>
+	                      <label className="text-muted-foreground">Rundung</label>
+	                      <select
+	                        className="h-7 rounded border border-slate-300 bg-background px-2"
+	                        value={roundingMode}
+	                        onChange={(event) => setRoundingMode(event.target.value as RoundingMode)}
+	                      >
+	                        <option value="commercial">Kaufmännisch</option>
+	                        <option value="symmetric">Symmetrisch</option>
+	                        <option value="up">Immer aufrunden</option>
+	                        <option value="down">Immer abrunden</option>
+	                      </select>
+	                      <label className="text-muted-foreground">Genauigkeit</label>
+	                      <select
+	                        className="h-7 rounded border border-slate-300 bg-background px-2"
+	                        value={String(roundingPrecision)}
+	                        onChange={(event) => setRoundingPrecision(Number(event.target.value))}
+	                      >
+	                        <option value="0">0</option>
+	                        <option value="1">1</option>
+	                        <option value="2">2</option>
+	                        <option value="3">3</option>
+	                      </select>
+	                      <label className="text-muted-foreground">Kurs</label>
+	                      <Input
+	                        value={conversionFactorInput}
+	                        onChange={(event) => setConversionFactorInput(event.target.value)}
+	                        className="h-7 w-20 px-2 font-mono text-xs"
+	                      />
+	                      <Button
+	                        type="button"
+	                        size="sm"
+	                        variant="outline"
+	                        className={toolbarButtonClass}
+	                        onClick={handleApplyCurrencyConversion}
+	                      >
+	                        Währung anwenden
+	                      </Button>
+	                    </div>
+	                    {showHelpPanel ? (
+	                      <div className="border-b bg-muted/10 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+	                        <p><span className="font-medium text-foreground">Begriffe:</span> VK VJ = Verkaufswert Vorjahr, VK Plan = geplanter Verkaufswert, Entw. % = prozentuale Abweichung zu VK VJ.</p>
+	                        <p><span className="font-medium text-foreground">Regeln:</span> % Plan = (VK Plan / VK VJ) * 100. Entw. % = ((VK Plan - VK VJ) / VK VJ) * 100.</p>
+	                        <p><span className="font-medium text-foreground">Top-down:</span> verteilt Elternwerte auf Kinder nach Plan- oder Referenzgewichten.</p>
+	                        <p><span className="font-medium text-foreground">Rundung:</span> Berechnung mit der gewählten Rundungsregel und Genauigkeit.</p>
+	                      </div>
+	                    ) : null}
+	                      <div className="border-b bg-muted/5 px-4 py-2">
                         <div className="flex items-center justify-between">
                           <p className="text-xs font-medium text-foreground">Letzte Änderungen</p>
                           {changeLog.length > 10 ? (
@@ -1852,16 +2063,20 @@ export default function Workspace() {
                             </Button>
                           ) : null}
                         </div>
-                        <div className="mt-1 space-y-1">
-                          {(showAllChangeLog ? changeLog : changeLog.slice(0, 10)).map((entry) => (
-                            <p key={entry.id} className="text-xs text-muted-foreground">
-                              <span className="mr-2 font-mono text-[10px]">{entry.timestamp}</span>
-                              {entry.message}
-                            </p>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
+	                        <div className="mt-1 space-y-1">
+	                          {(showAllChangeLog ? changeLog : changeLog.slice(0, 10)).map((entry) => (
+	                            <p key={entry.id} className="text-xs text-muted-foreground">
+	                              <span className="mr-2 font-mono text-[10px]">{entry.timestamp}</span>
+	                              {entry.message}
+	                            </p>
+	                          ))}
+	                          {changeLog.length === 0 ? (
+	                            <p className="text-xs text-muted-foreground">
+	                              Noch keine Änderungen protokolliert.
+	                            </p>
+	                          ) : null}
+	                        </div>
+	                      </div>
                     {selectedDrilldownNode ? (
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b bg-background px-4 py-2 text-xs text-muted-foreground">
                         <span className="font-medium text-foreground">
